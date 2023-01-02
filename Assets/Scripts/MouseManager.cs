@@ -135,8 +135,10 @@ public class MouseManager : MonoBehaviour
             ClearMoveHighlights();
             heldPiece = null;
             canCastle = !board.CheckChecks(Board.pieces, WhiteTurn);
-            Board.MateType mate = board.CheckMates(WhiteTurn);
-            if (mate == Board.MateType.Checkmate && WhiteTurn == 1)
+
+            Board.MateType endState = board.GenerateEndState(WhiteTurn);
+            if (endState == Board.MateType.None) return;
+            else if (endState == Board.MateType.Checkmate && WhiteTurn == 1)
             {
                 newGameButton.SetActive(true);
                 timerDivider.SetActive(false);
@@ -144,7 +146,7 @@ public class MouseManager : MonoBehaviour
                 canMove = false;
                 isCountingDown = false;
             }
-            else if (mate == Board.MateType.Checkmate && WhiteTurn == -1)
+            else if (endState == Board.MateType.Checkmate && WhiteTurn == -1)
             {
                 newGameButton.SetActive(true);
                 timerDivider.SetActive(false);
@@ -152,7 +154,7 @@ public class MouseManager : MonoBehaviour
                 canMove = false;
                 isCountingDown = false;
             }
-            else if (mate == Board.MateType.Stalemate)
+            else if (endState == Board.MateType.Stalemate)
             {
                 newGameButton.SetActive(true);
                 timerDivider.SetActive(false);
@@ -181,14 +183,16 @@ public class MouseManager : MonoBehaviour
         {
             bestMove = engine.MinMove(Board.pieces, 3);
         });
+        // If time is up and the computer wants to move, return
+        if (!canMove) return;
         board.MovePiece(bestMove.Item1, bestMove.Item2, WhiteTurn, Board.pieces);
-
+        
         //Board.pieces[(int)bestMove.Item2.x, (int)bestMove.Item2.y].gameObject.transform.position = board.tiles[(int)bestMove.Item2.x, (int)bestMove.Item2.y].transform.position + new Vector3(0, 0, -1);
         // Moves the piece representative
         GameObject gPiece = Board.pieces[(int)bestMove.Item2.x, (int)bestMove.Item2.y].gameObject;
         Vector3 from = gPiece.transform.position;
         Vector3 to = board.tiles[(int)bestMove.Item2.x, (int)bestMove.Item2.y].transform.position + new Vector3(0, 0, -1);
-        StartCoroutine(board.MoveCoroutine(gPiece, from, to, 0.1f));
+        StartCoroutine(board.MoveCoroutine(gPiece, from, to, 0.15f));
 
         // Deletes previous move tiles
         if (previousMoveTiles.Count > 0) foreach (GameObject t in previousMoveTiles) Destroy(t);
@@ -213,8 +217,10 @@ public class MouseManager : MonoBehaviour
         WhiteTurn = -WhiteTurn;
         
         canCastle = !board.CheckChecks(Board.pieces, WhiteTurn);
-        Board.MateType mate = board.CheckMates(WhiteTurn);
-        if (mate == Board.MateType.Checkmate && WhiteTurn == 1)
+        
+        Board.MateType endState = board.GenerateEndState(WhiteTurn);
+        if (endState == Board.MateType.None) return;
+        else if (endState == Board.MateType.Checkmate && WhiteTurn == 1)
         {
             newGameButton.SetActive(true);
             timerDivider.SetActive(false);
@@ -222,7 +228,7 @@ public class MouseManager : MonoBehaviour
             canMove = false;
             isCountingDown = false;
         }
-        else if (mate == Board.MateType.Checkmate && WhiteTurn == -1)
+        else if (endState == Board.MateType.Checkmate && WhiteTurn == -1)
         {
             newGameButton.SetActive(true);
             timerDivider.SetActive(false);
@@ -230,7 +236,7 @@ public class MouseManager : MonoBehaviour
             canMove = false;
             isCountingDown = false;
         }
-        else if (mate == Board.MateType.Stalemate)
+        else if (endState == Board.MateType.Stalemate)
         {
             newGameButton.SetActive(true);
             timerDivider.SetActive(false);

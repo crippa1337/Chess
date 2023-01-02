@@ -20,18 +20,22 @@ public class Board : MonoBehaviour
 
     [Space(20)]
     [Header("Pieces")]
-    [SerializeField] GameObject BlackKing;
+    [Header("White")]
     [SerializeField] GameObject WhiteKing;
-    [SerializeField] GameObject BlackQueen;
     [SerializeField] GameObject WhiteQueen;
-    [SerializeField] GameObject BlackRook;
     [SerializeField] GameObject WhiteRook;
-    [SerializeField] GameObject BlackBishop;
     [SerializeField] GameObject WhiteBishop;
-    [SerializeField] GameObject BlackKnight;
     [SerializeField] GameObject WhiteKnight;
-    [SerializeField] GameObject BlackPawn;
     [SerializeField] GameObject WhitePawn;
+    
+    [Space(3)]
+    [Header("Black")]
+    [SerializeField] GameObject BlackKing;
+    [SerializeField] GameObject BlackQueen;
+    [SerializeField] GameObject BlackRook;
+    [SerializeField] GameObject BlackBishop;
+    [SerializeField] GameObject BlackKnight;
+    [SerializeField] GameObject BlackPawn;
 
     [Space(20)]
     [Header("Other")]
@@ -278,11 +282,9 @@ public class Board : MonoBehaviour
         {
             for (int j = 0; j < 8; j++)
             {
+                if (pieces[i, j] == null) continue;
                 tiles[i, j].GetComponent<Tile>().position = new Vector2(i, j);
-                if (pieces[i, j] != null)
-                {
-                    pieces[i, j].position = new Vector2(i, j);
-                }
+                pieces[i, j].position = new Vector2(i, j);
             }
         }
     }
@@ -339,31 +341,25 @@ public class Board : MonoBehaviour
         Stalemate
     }
 
-    public MateType CheckMates(int turn)
+    public MateType GenerateEndState(int turn)
     {
         List<(Vector2, List<Vector2>)> piecesAndMoves = MoveGenerator.GenerateAllMoves(pieces, turn);
         bool check = CheckChecks(pieces, turn);
-        
-        if (!check && piecesAndMoves.Count == 0) return MateType.Stalemate;
-        
-        if (check)
+
+        foreach ((Vector2, List<Vector2>) piece in piecesAndMoves)
         {
-            foreach ((Vector2, List<Vector2>) pieceAndMoves in piecesAndMoves)
+            foreach (Vector2 move in piece.Item2)
             {
-                foreach (Vector2 move in pieceAndMoves.Item2)
-                {
-                    PieceData[,] testPieces = DeepCopyAllPieces(pieces);
-                    // If any move is legal, it's not checkmate
-                    if (TestMove(pieceAndMoves.Item1, move, turn, testPieces)) return MateType.None;
-                }
+                PieceData[,] testPieces = DeepCopyAllPieces(pieces);
+                // If any move is legal, it's not checkmate
+                if (TestMove(piece.Item1, move, turn, testPieces)) return MateType.None;
             }
+        }
 
-            // If no moves are legal, it's checkmate
-            return MateType.Checkmate;
-        } 
-
-        // Catch-all
-        return MateType.None;
+        // If no moves are legal and is in check, return checkmate
+        if (check) return MateType.Checkmate;
+        // If not in check, return stalemate
+        else return MateType.Stalemate;
     }
 
     public PieceData[,] DeepCopyAllPieces(PieceData[,] source)

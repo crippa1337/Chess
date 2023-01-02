@@ -299,7 +299,7 @@ MonoBehaviour:
   blackTimerText: {fileID: 554494862}
   whiteTimerText: {fileID: 682082792}
   timerDivider: {fileID: 1206764942}
-  startingTimeSeconds: 300
+  startingTimeSeconds: 900
 --- !u!4 &384111478
 Transform:
   m_ObjectHideFlags: 0
@@ -431,6 +431,7 @@ GameObject:
   - component: {fileID: 519420031}
   - component: {fileID: 519420029}
   - component: {fileID: 519420030}
+  - component: {fileID: 519420033}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -506,7 +507,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 5.67
+  orthographic size: 5.1923075
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -537,6 +538,29 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &519420033
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 519420028}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c88f5cead0c0b2a4eb05b5900433f8d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_ComponentVersion: 1
+  m_AssetsPPU: 26
+  m_RefResolutionX: 416
+  m_RefResolutionY: 234
+  m_CropFrame: 0
+  m_GridSnapping: 0
+  m_UpscaleRT: 0
+  m_PixelSnapping: 0
+  m_CropFrameX: 0
+  m_CropFrameY: 0
+  m_StretchFill: 0
 --- !u!1 &554494860
 GameObject:
   m_ObjectHideFlags: 0
@@ -1454,20 +1478,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Tile: {fileID: 2697499304904374981, guid: 6baa47cef1d9f7a4baea41ab5a9101fc, type: 3}
-  FirstColor: {r: 0.9411765, g: 0.8509804, b: 0.70980394, a: 1}
-  SecondColor: {r: 0.70980394, g: 0.53333336, b: 0.3882353, a: 1}
-  BlackKing: {fileID: 3394782246651071579, guid: 970244b1d7194024ba95ec72c199104d, type: 3}
-  WhiteKing: {fileID: 6921473759120238124, guid: e47feaa2cc014524dbc472cfa89d970b, type: 3}
-  BlackQueen: {fileID: 8117237113340185606, guid: c27ed275b315d5446a2053ed1eaaf974, type: 3}
-  WhiteQueen: {fileID: 2805214603085339705, guid: c06fe33cbb7761d4bae3e84140f5e99a, type: 3}
-  BlackRook: {fileID: 6454396886838788588, guid: 229b9db25ba1e8d48a06a7c1c04824e8, type: 3}
-  WhiteRook: {fileID: 7773734458370088060, guid: 7a67114a5d6515842a360eb7d78b892a, type: 3}
-  BlackBishop: {fileID: 2633762482205308545, guid: 6e6e722e3b916a9438023394b2d182dd, type: 3}
-  WhiteBishop: {fileID: 5070708518842673783, guid: 759263ea5d3542845b34cad3c4b4dde3, type: 3}
-  BlackKnight: {fileID: 8923845950366201834, guid: c17ba752caf81ab42a32234410c8696c, type: 3}
-  WhiteKnight: {fileID: 7712873435959228851, guid: 62d2664f8de8fcf40873ea7dd3441b5f, type: 3}
-  BlackPawn: {fileID: 256865759014125170, guid: 4d6d05cda7ea50b4fa7fc3f8421acac7, type: 3}
-  WhitePawn: {fileID: 9038525291816559498, guid: 65a87b1b1cc94894191996da1a8035bb, type: 3}
+  FirstColor: {r: 1, g: 0.99607843, b: 0.85882354, a: 1}
+  SecondColor: {r: 0.5137255, g: 0.62352943, b: 0.3921569, a: 1}
+  WhiteKing: {fileID: 2328340875924504317, guid: f406dafd58c19eb46991f0b47c336adf, type: 3}
+  WhiteQueen: {fileID: 6824232845977294005, guid: fbcb0e468b62b9f4ca156b10ae994e97, type: 3}
+  WhiteRook: {fileID: 4616576864477518771, guid: 784bdb6368b6d344f8731c5d5cf98e04, type: 3}
+  WhiteBishop: {fileID: 7109827185043446601, guid: ec7622e2ac9c7c94db741cbd7c21fe03, type: 3}
+  WhiteKnight: {fileID: 4984699024094818249, guid: 98d18ab979100b548b26c9a8b32003e7, type: 3}
+  WhitePawn: {fileID: 266330881724813631, guid: ea9bd90ea1f809b46b1a97d6e2efe4b2, type: 3}
+  BlackKing: {fileID: 1868251146144555109, guid: 91c5c8b2ef1829844929db1dc2d2146a, type: 3}
+  BlackQueen: {fileID: 8084165778145544716, guid: a4c28219840010845ad2167f6e6acda3, type: 3}
+  BlackRook: {fileID: 3231432770062125317, guid: 16b1d58d5047c5f4db6e9fe0079c5183, type: 3}
+  BlackBishop: {fileID: 1107775176669366628, guid: ff7b244ab821f134db3764a26845e144, type: 3}
+  BlackKnight: {fileID: 2831137849161802719, guid: eddd542396f1abb488fa9dd483c9ff73, type: 3}
+  BlackPawn: {fileID: 6793566382319661310, guid: 0630d58df0602924fa9aa600f0284f51, type: 3}
   captureSound: {fileID: 8300000, guid: de9bb07619add5e48a5fc287e4a72c94, type: 3}
   moveSound: {fileID: 8300000, guid: b0c250f580bc71b4fbb136ae5573e457, type: 3}
 --- !u!4 &1989327678
