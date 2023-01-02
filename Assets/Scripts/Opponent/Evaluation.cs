@@ -17,13 +17,13 @@ public class Evaluation : MonoBehaviour
         // White is maximizer
         // Black is minimizer
 
-        // If white is checkmated, return negInfinity
-        if (board.CheckMates(1) == -1)
+        // If white is checkmated, return min
+        if (board.CheckMates(1) == Board.MateType.Checkmate)
         {
             return negInfinity;
         }
-        // If black is checkmated, return infinity
-        else if (board.CheckMates(-1) == 1)
+        // If black is checkmated, return max
+        else if (board.CheckMates(-1) == Board.MateType.Checkmate)
         {
             return infinity;
         }

@@ -12,12 +12,10 @@ public class Engine : MonoBehaviour
     readonly int negInfinity = int.MinValue;
 
     [SerializeField] Board board;
-    MoveGenerator moveGenerator;
     Evaluation evaluation;
 
     private void Start()
     {
-        moveGenerator = GetComponent<MoveGenerator>();
         evaluation = GetComponent<Evaluation>();
     }
 
@@ -31,7 +29,7 @@ public class Engine : MonoBehaviour
         if (isMaximizing)
         {
             int maxEval = negInfinity;
-            List<(Vector2, List<Vector2>)> allMoves = moveGenerator.GenerateAllMoves(pieces, 1);
+            List<(Vector2, List<Vector2>)> allMoves = MoveGenerator.GenerateAllMoves(pieces, 1);
             foreach ((Vector2, List<Vector2>) pieceMoves in allMoves)
             {
                 foreach (Vector2 move in pieceMoves.Item2)
@@ -55,7 +53,7 @@ public class Engine : MonoBehaviour
         else
         {
             int minEval = infinity;
-            List<(Vector2, List<Vector2>)> allMoves = moveGenerator.GenerateAllMoves(pieces, -1);
+            List<(Vector2, List<Vector2>)> allMoves = MoveGenerator.GenerateAllMoves(pieces, -1);
             foreach ((Vector2, List<Vector2>) pieceMoves in allMoves)
             {
                 foreach (Vector2 move in pieceMoves.Item2)
@@ -82,7 +80,7 @@ public class Engine : MonoBehaviour
     {
         int maxEval = negInfinity;
         (Vector2, Vector2) bestMove = (Vector2.zero, Vector2.zero);
-        List<(Vector2, List<Vector2>)> allMoves = moveGenerator.GenerateAllMoves(pieces, 1);
+        List<(Vector2, List<Vector2>)> allMoves = MoveGenerator.GenerateAllMoves(pieces, 1);
         foreach ((Vector2, List<Vector2>) pieceMoves in allMoves)
         {
             foreach (Vector2 move in pieceMoves.Item2)
@@ -109,7 +107,7 @@ public class Engine : MonoBehaviour
     {
         int minEval = infinity;
         (Vector2, Vector2) bestMove = (Vector2.zero, Vector2.zero);
-        List<(Vector2, List<Vector2>)> allMoves = moveGenerator.GenerateAllMoves(pieces, -1);
+        List<(Vector2, List<Vector2>)> allMoves = MoveGenerator.GenerateAllMoves(pieces, -1);
         foreach ((Vector2, List<Vector2>) pieceMoves in allMoves)
         {
             foreach (Vector2 move in pieceMoves.Item2)

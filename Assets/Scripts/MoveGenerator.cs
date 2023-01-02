@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class MoveGenerator : MonoBehaviour
 {
-    public List<(Vector2, List<Vector2>)> GenerateAllMoves(PieceData[,] pieces, int isWhite)
+    public static List<(Vector2, List<Vector2>)> GenerateAllMoves(PieceData[,] pieces, int isWhite)
     {
         List<(Vector2, List<Vector2>)> allMoves = new List<(Vector2, List<Vector2>)>();
         for (int i = 0; i < 8; i++)

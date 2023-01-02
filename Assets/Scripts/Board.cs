@@ -98,7 +98,7 @@ public class Board : MonoBehaviour
 
         if (pieces[(int)to.x, (int)to.y] != null)
         {
-            StartCoroutine(LerpCoroutine(pieces[(int)to.x, (int)to.y].gameObject));
+            StartCoroutine(TakeCoroutine(pieces[(int)to.x, (int)to.y].gameObject));
             audioSource.PlayOneShot(captureSound);
         } else
         {
@@ -156,6 +156,7 @@ public class Board : MonoBehaviour
                     {
                         // Queenside
                         // Move Rook
+     
                         testPieces[3, (int)from.y] = testPieces[0, (int)from.y];
                         testPieces[3, (int)from.y].position = new Vector2(3, from.y);
                         testPieces[0, (int)from.y] = null;
@@ -331,33 +332,38 @@ public class Board : MonoBehaviour
         return false;
     }
 
-    public int CheckMates(int turn)
+    public enum MateType
     {
-        if (CheckChecks(pieces, turn))
-        {
-            for (int i = 0; i < 8; i++)
-            {
-                for (int j = 0; j < 8; j++)
-                {
-                    if (pieces[i, j] == null) continue;
+        None,
+        Checkmate,
+        Stalemate
+    }
 
-                    if (pieces[i, j].isWhite == turn)
-                    {
-                        foreach (Vector2 move in pieces[i, j].LegalMoves(pieces))
-                        {
-                            PieceData[,] testPieces = DeepCopyAllPieces(pieces);
-                            if (TestMove(pieces[i, j].position, move, turn, testPieces))
-                            {
-                                return 0;
-                            }
-                        }
-                    }
+    public MateType CheckMates(int turn)
+    {
+        List<(Vector2, List<Vector2>)> piecesAndMoves = MoveGenerator.GenerateAllMoves(pieces, turn);
+        bool check = CheckChecks(pieces, turn);
+        
+        if (!check && piecesAndMoves.Count == 0) return MateType.Stalemate;
+        
+        if (check)
+        {
+            foreach ((Vector2, List<Vector2>) pieceAndMoves in piecesAndMoves)
+            {
+                foreach (Vector2 move in pieceAndMoves.Item2)
+                {
+                    PieceData[,] testPieces = DeepCopyAllPieces(pieces);
+                    // If any move is legal, it's not checkmate
+                    if (TestMove(pieceAndMoves.Item1, move, turn, testPieces)) return MateType.None;
                 }
             }
-            return -turn;
-        }
 
-        return 0;
+            // If no moves are legal, it's checkmate
+            return MateType.Checkmate;
+        } 
+
+        // Catch-all
+        return MateType.None;
     }
 
     public PieceData[,] DeepCopyAllPieces(PieceData[,] source)
@@ -378,7 +384,7 @@ public class Board : MonoBehaviour
         return target;
     }
 
-    public IEnumerator LerpCoroutine(GameObject piece)
+    public IEnumerator TakeCoroutine(GameObject piece)
     {
         float elapsedTime = 0;
         float jumpHeight = 2f;
@@ -390,7 +396,7 @@ public class Board : MonoBehaviour
 
         while (elapsedTime < 0.5f)
         {
-            piece.transform.position = Vector3.Lerp(start, highestPos, elapsedTime / 0.2f);
+            piece.transform.position = Vector3.Lerp(start, highestPos, elapsedTime / 0.5f);
             piece.transform.Rotate(0, 0, 360 * Time.deltaTime * 10);
             elapsedTime += Time.deltaTime;
             yield return null;
@@ -407,5 +413,19 @@ public class Board : MonoBehaviour
         
         piece.transform.position = end;
         Destroy(piece);
+    }
+    
+    public IEnumerator MoveCoroutine(GameObject piece, Vector3 start, Vector3 end, float time)
+    {
+        float elapsedTime = 0;
+
+        while (elapsedTime < time)
+        {
+            piece.transform.position = Vector3.Lerp(start, end, elapsedTime / time);
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        piece.transform.position = end;
     }
 }

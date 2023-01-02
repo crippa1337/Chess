@@ -299,7 +299,7 @@ MonoBehaviour:
   blackTimerText: {fileID: 554494862}
   whiteTimerText: {fileID: 682082792}
   timerDivider: {fileID: 1206764942}
-  startingTimeSeconds: 600
+  startingTimeSeconds: 300
 --- !u!4 &384111478
 Transform:
   m_ObjectHideFlags: 0
