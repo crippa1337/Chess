@@ -8,6 +8,7 @@ public class Evaluation : MonoBehaviour
     int negInfinity = int.MinValue;
 
     [SerializeField] Board board;
+    
 
     public int Evaluate(PieceData[,] pieces)
     {
@@ -36,40 +37,48 @@ public class Evaluation : MonoBehaviour
                     PieceData piece = pieces[i, j];
                     PieceData.Type type = piece.type;
 
-                    int pieceValue;
-                    switch (type)
+                    int pieceValue = type switch
                     {
-                        case PieceData.Type.Pawn:
-                            pieceValue = 100;
-                            break;
-                        case PieceData.Type.Knight:
-                            pieceValue = 320;
-                            break;
-                        case PieceData.Type.Bishop:
-                            pieceValue = 330;
-                            break;
-                        case PieceData.Type.Rook:
-                            pieceValue = 500;
-                            break;
-                        case PieceData.Type.Queen:
-                            pieceValue = 900;
-                            break;
-                        case PieceData.Type.King:
-                            pieceValue = 20000;
-                            break;
-                        default:
-                            pieceValue = 0;
-                            break;
-                    }
-              
+                        PieceData.Type.Pawn => 100,
+                        PieceData.Type.Knight => 320,
+                        PieceData.Type.Bishop => 330,
+                        PieceData.Type.Rook => 500,
+                        PieceData.Type.Queen => 900,
+                        PieceData.Type.King => 20000,
+                        _ => 0
+                    };
 
+                    int piecePosValue;
                     if (piece.isWhite == 1)
                     {
-                        whiteScore += pieceValue;
+                        piecePosValue = type switch
+                        {
+                            PieceData.Type.Pawn => PieceSquareTables.pawns[i, j],
+                            PieceData.Type.Knight => PieceSquareTables.knights[i, j],
+                            PieceData.Type.Bishop => PieceSquareTables.bishops[i, j],
+                            PieceData.Type.Rook => PieceSquareTables.rooks[i, j],
+                            PieceData.Type.Queen => PieceSquareTables.queens[i, j],
+                            PieceData.Type.King => PieceSquareTables.kings[i, j],
+                            _ => 0
+                        };
+
+                        whiteScore += pieceValue + piecePosValue;
                     }
+
                     else if (piece.isWhite == -1)
                     {
-                        blackScore += pieceValue;
+                        piecePosValue = type switch
+                        {
+                            PieceData.Type.Pawn => PieceSquareTables.pawns[7 - i, j],
+                            PieceData.Type.Knight => PieceSquareTables.knights[7 - i, j],
+                            PieceData.Type.Bishop => PieceSquareTables.bishops[7 - i, j],
+                            PieceData.Type.Rook => PieceSquareTables.rooks[7 - i, j],
+                            PieceData.Type.Queen => PieceSquareTables.queens[7 - i, j],
+                            PieceData.Type.King => PieceSquareTables.kings[7 - i, j],
+                            _ => 0
+                        };
+
+                        blackScore += pieceValue + piecePosValue;
                     }
                 }
             }

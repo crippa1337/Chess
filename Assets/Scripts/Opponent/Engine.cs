@@ -2,13 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading.Tasks;
 using Unity.VisualScripting.Dependencies.NCalc;
 using UnityEngine;
 
 public class Engine : MonoBehaviour
 {
-    int infinity = int.MaxValue;
-    int negInfinity = int.MinValue;
+    readonly int infinity = int.MaxValue;
+    readonly int negInfinity = int.MinValue;
 
     [SerializeField] Board board;
     MoveGenerator moveGenerator;
@@ -20,7 +21,7 @@ public class Engine : MonoBehaviour
         evaluation = GetComponent<Evaluation>();
     }
 
-    public int minimax(PieceData[,] pieces, int depth, int alpha, int beta, bool isMaximizing)
+    public int MiniMax(PieceData[,] pieces, int depth, int alpha, int beta, bool isMaximizing)
     {
         if (depth == 0)
         {
@@ -39,7 +40,7 @@ public class Engine : MonoBehaviour
                     PieceData[,] testPieces = board.DeepCopyAllPieces(pieces);
                     if (board.TestMove(from, move, 1, testPieces))
                     {
-                        int eval = minimax(testPieces, depth - 1, alpha, beta, false);
+                        int eval = MiniMax(testPieces, depth - 1, alpha, beta, false);
                         maxEval = Mathf.Max(maxEval, eval);
                         alpha = Mathf.Max(alpha, eval);
                         if (beta <= alpha)
@@ -63,7 +64,7 @@ public class Engine : MonoBehaviour
                     PieceData[,] testPieces = board.DeepCopyAllPieces(pieces);
                     if (board.TestMove(from, move, -1, testPieces))
                     {
-                        int eval = minimax(testPieces, depth - 1, alpha, beta, true);
+                        int eval = MiniMax(testPieces, depth - 1, alpha, beta, true);
                         minEval = Mathf.Min(minEval, eval);
                         beta = Mathf.Min(beta, eval);
                         if (beta <= alpha)
@@ -77,7 +78,7 @@ public class Engine : MonoBehaviour
         }
     }
 
-    public (Vector2, Vector2) maxMove(PieceData[,] pieces, int depth)
+    public (Vector2, Vector2) MaxMove(PieceData[,] pieces, int depth)
     {
         int maxEval = negInfinity;
         (Vector2, Vector2) bestMove = (Vector2.zero, Vector2.zero);
@@ -90,7 +91,7 @@ public class Engine : MonoBehaviour
                 PieceData[,] testPieces = board.DeepCopyAllPieces(pieces);
                 if (board.TestMove(from, move, 1, testPieces))
                 {
-                    int eval = minimax(testPieces, depth, negInfinity, infinity, false);
+                    int eval = MiniMax(testPieces, depth, negInfinity, infinity, false);
                     if (eval > maxEval)
                     {
                         maxEval = eval;
@@ -104,7 +105,7 @@ public class Engine : MonoBehaviour
         return bestMove;
     }
 
-    public (Vector2, Vector2) minMove(PieceData[,] pieces, int depth)
+    public (Vector2, Vector2) MinMove(PieceData[,] pieces, int depth)
     {
         int minEval = infinity;
         (Vector2, Vector2) bestMove = (Vector2.zero, Vector2.zero);
@@ -117,7 +118,7 @@ public class Engine : MonoBehaviour
                 PieceData[,] testPieces = board.DeepCopyAllPieces(pieces);
                 if (board.TestMove(from, move, -1, testPieces))
                 {
-                    int eval = minimax(testPieces, depth, negInfinity, infinity, true);
+                    int eval = MiniMax(testPieces, depth, negInfinity, infinity, true);
                     if (eval < minEval)
                     {
                         minEval = eval;

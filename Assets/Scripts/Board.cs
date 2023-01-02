@@ -48,12 +48,6 @@ public class Board : MonoBehaviour
         audioSource = GetComponent<AudioSource>();
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
     public bool MovePiece(Vector2 from, Vector2 to, int isWhite, PieceData[,] pieces)
     {
         PieceData[,] testPieces = DeepCopyAllPieces(pieces);
@@ -181,14 +175,29 @@ public class Board : MonoBehaviour
 
         if (isWhite == 1 && CheckChecks(testPieces, 1))
         {
+            UndoKingTest(fromPiece, from);
             return false;
         }
         else if (isWhite == -1 && CheckChecks(testPieces, -1))
         {
+            UndoKingTest(fromPiece, from);
             return false;
         }
 
+        UndoKingTest(fromPiece, from);
         return true;
+    }
+
+    void UndoKingTest(PieceData fromPiece, Vector2 from)
+    {
+        if (fromPiece.type == PieceData.Type.King && fromPiece.isWhite == 1)
+        {
+            white_kingpos = from;
+        }
+        else if (fromPiece.type == PieceData.Type.King && fromPiece.isWhite == -1)
+        {
+            black_kingpos = from;
+        }
     }
 
     void InitBoard()

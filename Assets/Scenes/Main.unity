@@ -293,12 +293,13 @@ MonoBehaviour:
   highlightPrefabTile: {fileID: 348536891871050312, guid: 0c68a1a9b56b80d42b13d7d8facbc292, type: 3}
   MoveHighlightPrefabPiece: {fileID: 4240137668455590703, guid: 1fa0dfd4214cfbf418b6c588cf3a7f1a, type: 3}
   AttackHighlightPrefabPiece: {fileID: 1048520865787217931, guid: 085f34a5368be974d99ce7f64389db94, type: 3}
+  previousMovePrefabTile: {fileID: 2697499304904374981, guid: c8a1f248a00b123468c8884580f0f7e5, type: 3}
   newGameButton: {fileID: 636764007}
   winText: {fileID: 1721066252}
   blackTimerText: {fileID: 554494862}
   whiteTimerText: {fileID: 682082792}
   timerDivider: {fileID: 1206764942}
-  startingTimeSeconds: 900
+  startingTimeSeconds: 600
 --- !u!4 &384111478
 Transform:
   m_ObjectHideFlags: 0

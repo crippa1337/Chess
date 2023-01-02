@@ -21,7 +21,7 @@ public class MouseManager : MonoBehaviour
             whiteTurn = value;
             if (value == -1)
             {
-                //ComputerMove();
+                ComputerMove();
             }
         }
     }
@@ -87,7 +87,7 @@ public class MouseManager : MonoBehaviour
                 Vector2 tilePos = hit.collider.gameObject.GetComponent<Tile>().position;
                 if (Board.pieces[(int)tilePos.x, (int)tilePos.y] != null)
                 {
-                    if (Board.pieces[(int)tilePos.x, (int)tilePos.y].isWhite == WhiteTurn)
+                    if (Board.pieces[(int)tilePos.x, (int)tilePos.y].isWhite == 1)
                     {
                         heldPiece = Board.pieces[(int)tilePos.x, (int)tilePos.y];
                         DrawMoveHighlights();
@@ -171,15 +171,16 @@ public class MouseManager : MonoBehaviour
         (Vector2, Vector2) bestMove = (Vector2.zero, Vector2.zero);
         await Task.Run(() =>
         {
-            bestMove = engine.minMove(Board.pieces, 3);
+            bestMove = engine.MinMove(Board.pieces, 3);
         });
         board.MovePiece(bestMove.Item1, bestMove.Item2, WhiteTurn, Board.pieces);
 
         // Previous move tiles
         if (previousMoveTiles.Count > 0) foreach (GameObject t in previousMoveTiles) Destroy(t);
+        previousMoveTiles.Clear();
         // Create previous move prefab at computer from and to positions
-        previousMoveTiles.Add(Instantiate(previousMovePrefabTile, board.tiles[(int)bestMove.Item1.x, (int)bestMove.Item1.y].transform.position, Quaternion.identity));
-        previousMoveTiles.Add(Instantiate(previousMovePrefabTile, board.tiles[(int)bestMove.Item2.x, (int)bestMove.Item2.y].transform.position, Quaternion.identity));
+        previousMoveTiles.Add(Instantiate(previousMovePrefabTile, board.tiles[(int)bestMove.Item1.x, (int)bestMove.Item1.y].transform.position + new Vector3(0, 0, -0.1f), Quaternion.identity));
+        previousMoveTiles.Add(Instantiate(previousMovePrefabTile, board.tiles[(int)bestMove.Item2.x, (int)bestMove.Item2.y].transform.position + new Vector3(0, 0, -0.1f), Quaternion.identity));
 
         Board.pieces[(int)bestMove.Item2.x, (int)bestMove.Item2.y].gameObject.transform.position = board.tiles[(int)bestMove.Item2.x, (int)bestMove.Item2.y].transform.position + new Vector3(0, 0, -1);
 
@@ -262,9 +263,11 @@ public class MouseManager : MonoBehaviour
 
     public void ResetTurn()
     {
+        if (previousMoveTiles.Count > 0) foreach (GameObject t in previousMoveTiles) Destroy(t);
+        previousMoveTiles.Clear();
         newGameButton.SetActive(false);
-        WhiteTurn = 1;
         timerDivider.SetActive(true);
+        WhiteTurn = 1;
         blackTimer = startingTimeSeconds;
         whiteTimer = startingTimeSeconds;
         DisplayTime(blackTimer - 1, blackTimerText);
