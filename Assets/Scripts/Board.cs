@@ -344,7 +344,6 @@ public class Board : MonoBehaviour
     public MateType GenerateEndState(int turn)
     {
         List<(Vector2, List<Vector2>)> piecesAndMoves = MoveGenerator.GenerateAllMoves(pieces, turn);
-        bool check = CheckChecks(pieces, turn);
 
         foreach ((Vector2, List<Vector2>) piece in piecesAndMoves)
         {
@@ -357,7 +356,7 @@ public class Board : MonoBehaviour
         }
 
         // If no moves are legal and is in check, return checkmate
-        if (check) return MateType.Checkmate;
+        if (CheckChecks(pieces, turn)) return MateType.Checkmate;
         // If not in check, return stalemate
         else return MateType.Stalemate;
     }
