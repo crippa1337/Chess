@@ -171,7 +171,7 @@ public class MouseManager : MonoBehaviour
             if (hit.collider != null)
             {
                 hoveredTile = hit.collider.gameObject;
-                highlightTile.transform.position = hoveredTile.transform.position + new Vector3(0, 0, -2);
+                highlightTile.transform.position = hoveredTile.transform.position + new Vector3(0, 0, -1);
             }
         }
     }
@@ -262,12 +262,12 @@ public class MouseManager : MonoBehaviour
             
             if (Board.pieces[(int)move.x, (int)move.y] == null)
             {
-                GameObject moveHighlight = Instantiate(MoveHighlightPrefabPiece, board.tiles[(int)move.x, (int)move.y].transform.position + new Vector3(0, 0, -2), Quaternion.identity);
+                GameObject moveHighlight = Instantiate(MoveHighlightPrefabPiece, board.tiles[(int)move.x, (int)move.y].transform.position + new Vector3(0, 0, -1), Quaternion.identity);
                 MoveHighlightPieces.Add(moveHighlight);
             }
             else
             {
-                GameObject attackHighlight = Instantiate(AttackHighlightPrefabPiece, board.tiles[(int)move.x, (int)move.y].transform.position + new Vector3(0, 0, -2), Quaternion.identity);
+                GameObject attackHighlight = Instantiate(AttackHighlightPrefabPiece, board.tiles[(int)move.x, (int)move.y].transform.position + new Vector3(0, 0, -1), Quaternion.identity);
                 AttackHighlightPieces.Add(attackHighlight);
             }
         }
