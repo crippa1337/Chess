@@ -19,7 +19,7 @@ public class Engine : MonoBehaviour
         evaluation = GetComponent<Evaluation>();
     }
 
-    public int MiniMax(IDictionary<Vector2, PieceData> pieces, int depth, int alpha, int beta, bool isMaximizing)
+    public int MiniMax(PieceData[,] pieces, int depth, int alpha, int beta, bool isMaximizing)
     {
         if (depth == 0)
         {
@@ -29,13 +29,13 @@ public class Engine : MonoBehaviour
         if (isMaximizing)
         {
             int maxEval = negInfinity;
-            List<(Vector2, List<Vector2>)> allMoves = MoveGenerator.GenerateAllMoves(1);
+            List<(Vector2, List<Vector2>)> allMoves = MoveGenerator.GenerateAllMoves(pieces, 1);
             foreach ((Vector2, List<Vector2>) pieceMoves in allMoves)
             {
                 foreach (Vector2 move in pieceMoves.Item2)
                 {
                     Vector2 from = pieceMoves.Item1;
-                    IDictionary<Vector2, PieceData> testPieces = board.DeepCopyAllPieces(pieces);
+                    PieceData[,] testPieces = board.DeepCopyAllPieces(pieces);
                     if (board.TestMove(from, move, 1, testPieces))
                     {
                         int eval = MiniMax(testPieces, depth - 1, alpha, beta, false);
@@ -53,13 +53,13 @@ public class Engine : MonoBehaviour
         else
         {
             int minEval = infinity;
-            List<(Vector2, List<Vector2>)> allMoves = MoveGenerator.GenerateAllMoves(-1);
+            List<(Vector2, List<Vector2>)> allMoves = MoveGenerator.GenerateAllMoves(pieces, -1);
             foreach ((Vector2, List<Vector2>) pieceMoves in allMoves)
             {
                 foreach (Vector2 move in pieceMoves.Item2)
                 {
                     Vector2 from = pieceMoves.Item1;
-                    IDictionary<Vector2, PieceData> testPieces = board.DeepCopyAllPieces(pieces);
+                    PieceData[,] testPieces = board.DeepCopyAllPieces(pieces);
                     if (board.TestMove(from, move, -1, testPieces))
                     {
                         int eval = MiniMax(testPieces, depth - 1, alpha, beta, true);
@@ -76,17 +76,17 @@ public class Engine : MonoBehaviour
         }
     }
 
-    public (Vector2, Vector2) MaxMove(IDictionary<Vector2, PieceData> pieces, int depth)
+    public (Vector2, Vector2) MaxMove(PieceData[,] pieces, int depth)
     {
         int maxEval = negInfinity;
         (Vector2, Vector2) bestMove = (Vector2.zero, Vector2.zero);
-        List<(Vector2, List<Vector2>)> allMoves = MoveGenerator.GenerateAllMoves(1);
+        List<(Vector2, List<Vector2>)> allMoves = MoveGenerator.GenerateAllMoves(pieces, 1);
         foreach ((Vector2, List<Vector2>) pieceMoves in allMoves)
         {
             foreach (Vector2 move in pieceMoves.Item2)
             {
                 Vector2 from = pieceMoves.Item1;
-                IDictionary<Vector2, PieceData> testPieces = board.DeepCopyAllPieces(pieces);
+                PieceData[,] testPieces = board.DeepCopyAllPieces(pieces);
                 if (board.TestMove(from, move, 1, testPieces))
                 {
                     int eval = MiniMax(testPieces, depth, negInfinity, infinity, false);
@@ -103,17 +103,17 @@ public class Engine : MonoBehaviour
         return bestMove;
     }
 
-    public (Vector2, Vector2) MinMove(IDictionary<Vector2, PieceData> pieces, int depth)
+    public (Vector2, Vector2) MinMove(PieceData[,] pieces, int depth)
     {
         int minEval = infinity;
         (Vector2, Vector2) bestMove = (Vector2.zero, Vector2.zero);
-        List<(Vector2, List<Vector2>)> allMoves = MoveGenerator.GenerateAllMoves(-1);
+        List<(Vector2, List<Vector2>)> allMoves = MoveGenerator.GenerateAllMoves(pieces, -1);
         foreach ((Vector2, List<Vector2>) pieceMoves in allMoves)
         {
             foreach (Vector2 move in pieceMoves.Item2)
             {
                 Vector2 from = pieceMoves.Item1;
-                IDictionary<Vector2, PieceData> testPieces = board.DeepCopyAllPieces(pieces);
+                PieceData[,] testPieces = board.DeepCopyAllPieces(pieces);
                 if (board.TestMove(from, move, -1, testPieces))
                 {
                     int eval = MiniMax(testPieces, depth, negInfinity, infinity, true);
@@ -128,4 +128,5 @@ public class Engine : MonoBehaviour
 
         return bestMove;
     }
+
 }

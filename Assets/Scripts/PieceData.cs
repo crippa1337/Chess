@@ -123,16 +123,13 @@ public class PieceData
                     continue;
                 }
 
-                
+                PieceData currentPiece = pieces[new Vector2(newMove.x, newMove.y)];
 
-                if (!pieces.ContainsKey(new Vector2(newMove.x, newMove.y)))
+                if (currentPiece == null)
                 {
                     legalMoves.Add(newMove);
-                    continue;
                 }
-
-                PieceData currentPiece = pieces[new Vector2(newMove.x, newMove.y)];
-                if (currentPiece.isWhite != isWhite)
+                else if (currentPiece.isWhite != isWhite)
                 {
                     legalMoves.Add(newMove);
                     axes[i] = false;
@@ -196,14 +193,13 @@ public class PieceData
                     continue;
                 }
 
-                if (!pieces.ContainsKey(new Vector2(newMove.x, newMove.y)))
+                PieceData currentPiece = pieces[new Vector2(newMove.x, newMove.y)];
+
+                if (currentPiece == null)
                 {
                     legalMoves.Add(newMove);
-                    continue;
                 }
-
-                PieceData currentPiece = pieces[new Vector2(newMove.x, newMove.y)];
-                if (currentPiece.isWhite != isWhite)
+                else if (currentPiece.isWhite != isWhite)
                 {
                     legalMoves.Add(newMove);
                     axes[i] = false;
@@ -236,7 +232,7 @@ public class PieceData
                 continue;
             }
 
-            if (pieces.ContainsKey(new Vector2(move.x, move.y))&& pieces[new Vector2(move.x, move.y)].isWhite == isWhite)
+            if (pieces[new Vector2(move.x, move.y)] != null && pieces[new Vector2(move.x, move.y)].isWhite == isWhite)
             {
                 continue;
             }
@@ -255,7 +251,7 @@ public class PieceData
 
         if (!hasMoved)
         {
-            if (!pieces.ContainsKey(new Vector2(position.x, position.y + (1 * isWhite))))
+            if (pieces[new Vector2(position.x, position.y + (1 * isWhite))] == null)
             {
                 moveMoves.Add(new(position.x, position.y + (2 * isWhite)));
             }
@@ -269,7 +265,7 @@ public class PieceData
                 continue;
             }
 
-            if (!pieces.ContainsKey(new Vector2(move.x, move.y)))
+            if (pieces[new Vector2(move.x, move.y)] == null)
             {
                 legalMoves.Add(move);
             }
@@ -285,7 +281,7 @@ public class PieceData
                 continue;
             }
 
-            if (pieces.ContainsKey(new Vector2(move.x, move.y)) && pieces[new Vector2(move.x, move.y)].isWhite != isWhite)
+            if (pieces[(int)move.x, (int)move.y] != null && pieces[(int)move.x, (int)move.y].isWhite != isWhite)
             {
                 legalMoves.Add(move);
             }
@@ -295,7 +291,7 @@ public class PieceData
 
     }
 
-    public List<Vector2> KnightMoves(IDictionary<Vector2, PieceData> pieces)
+    public List<Vector2> KnightMoves(PieceData[,] pieces)
     {
         List<Vector2> potentialMoves = new List<Vector2>();
 
@@ -312,7 +308,7 @@ public class PieceData
         return RemoveIllegalMoves(potentialMoves, pieces);
     }
 
-    public List<Vector2> QueenMoves(IDictionary<Vector2, PieceData> pieces)
+    public List<Vector2> QueenMoves(PieceData[,] pieces)
     {
         List<Vector2> legalMoves = new();
 
@@ -322,7 +318,7 @@ public class PieceData
         return legalMoves;
     }
 
-    public List<Vector2> KingMoves(IDictionary<Vector2, PieceData> pieces)
+    public List<Vector2> KingMoves(PieceData[,] pieces)
     {
         List<Vector2> potentialMoves = new();
 
@@ -337,12 +333,12 @@ public class PieceData
 
         if (!hasMoved && MouseManager.canCastle)
         {
-            PieceData rook1 = pieces[new Vector2(position.x + 3, position.y)];
-            PieceData rook2 = pieces[new Vector2(position.x - 4, position.y)];
+            PieceData rook1 = pieces[(int)position.x + 3, (int)position.y];
+            PieceData rook2 = pieces[(int)position.x - 4, (int)position.y];
 
             if (rook1 != null) {
                 // If the king hasn't moved and the rook on the right hasn't moved, and there are no pieces between the king and the rook, add the move to the list of legal moves
-                if (rook1.type == Type.Rook && !rook1.hasMoved && !pieces.ContainsKey(new Vector2(position.x + 1, position.y)) && !pieces.ContainsKey(new Vector2(position.x + 2, position.y)))
+                if (rook1.type == Type.Rook && !rook1.hasMoved && pieces[(int)position.x + 1, (int)position.y] == null && pieces[(int)position.x + 2, (int)position.y] == null)
                 {
                     potentialMoves.Add(new Vector2(position.x + 2, position.y));
                 }
@@ -350,7 +346,7 @@ public class PieceData
 
             if (rook2 != null) {
                 // If the king hasn't moved and the rook on the left hasn't moved, and there are no pieces between the king and the rook, add the move to the list of legal moves
-                if (rook2.type == Type.Rook && !rook2.hasMoved && !pieces.ContainsKey(new Vector2(position.x - 1, position.y)) && !pieces.ContainsKey(new Vector2(position.x - 2, position.y)) && !pieces.ContainsKey(new Vector2(position.x - 3, position.y)))
+                if (rook2.type == Type.Rook && !rook2.hasMoved && pieces[(int)position.x - 1, (int)position.y] == null && pieces[(int)position.x - 2, (int)position.y] == null && pieces[(int)position.x - 3, (int)position.y] == null)
                 {
                     potentialMoves.Add(new Vector2(position.x - 2, position.y));
                 }
