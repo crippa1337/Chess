@@ -1,26 +1,23 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class MoveGenerator : MonoBehaviour
 {
-    public static List<(Vector2, List<Vector2>)> GenerateAllMoves(PieceData[,] pieces, int isWhite)
+    public static List<(Vector2, List<Vector2>)> GenerateAllMoves(int caller)
     {
         List<(Vector2, List<Vector2>)> allMoves = new List<(Vector2, List<Vector2>)>();
-        for (int i = 0; i < 8; i++)
+        IDictionary<Vector2, PieceData> pieces = caller == 1 ? Board.whitePieces : Board.blackPieces;
+
+        for (int i = 0; i < pieces.Count; i++)
         {
-            for (int j = 0; j < 8; j++)
+            PieceData piece = pieces.ElementAt(i).Value;
+            List<Vector2> moves = piece.LegalMoves(Board.pieceDict);
+
+            if (moves.Count > 0)
             {
-                if (pieces[i, j] != null && pieces[i, j].isWhite == isWhite)
-                {
-                    PieceData piece = pieces[i, j];
-                    List<Vector2> moves = piece.LegalMoves(pieces);
-                    
-                    if (moves.Count != 0)
-                    {
-                        allMoves.Add((piece.position, moves));
-                    }
-                }
+                allMoves.Add((piece.position, moves));
             }
         }
         

@@ -55,11 +55,11 @@ public class Board : MonoBehaviour
         audioSource = GetComponent<AudioSource>();
     }
 
-    public bool MovePiece(Vector2 from, Vector2 to, int isWhite, PieceData[,] pieces)
+    public bool MovePiece(Vector2 from, Vector2 to, int isWhite, IDictionary<Vector2, PieceData> pieces)
     {
-        PieceData[,] testPieces = DeepCopyAllPieces(pieces);
+        IDictionary<Vector2, PieceData> testPieces = DeepCopyAllPieces(pieces);
         if (!TestMove(from, to, isWhite, testPieces)) return false;
-        PieceData fromPiece = pieces[(int)from.x, (int)from.y];
+        PieceData fromPiece = pieces[new Vector2(from.x, from.y)];
 
         if (fromPiece.type == PieceData.Type.King || fromPiece.type == PieceData.Type.Rook || fromPiece.type == PieceData.Type.Pawn)
         {
@@ -85,27 +85,28 @@ public class Board : MonoBehaviour
                     {
                         // Kingside
                         // Move Rook
-                        pieces[5, (int)from.y] = pieces[7, (int)from.y];
-                        pieces[5, (int)from.y].position = new Vector2(5, from.y);
-                        pieces[7, (int)from.y] = null;
-                        pieces[5, (int)from.y].hasMoved = true;
+                        pieces[new Vector2(5, from.y)] = pieces[new Vector2(7, from.y)];
+                        pieces[new Vector2(5, from.y)].position = new Vector2(5, from.y);
+                        pieces.Remove(new Vector2(7, from.y));
+                        pieces[new Vector2(5, from.y)].hasMoved = true;
                     }
                     else if (to.x == 2)
                     {
                         // Queenside
                         // Move Rook
-                        pieces[3, (int)from.y] = pieces[0, (int)from.y];
-                        pieces[3, (int)from.y].position = new Vector2(3, from.y);
-                        pieces[0, (int)from.y] = null;
-                        pieces[3, (int)from.y].hasMoved = true;
+
+                        pieces[new Vector2(3, from.y)] = pieces[new Vector2(0, from.y)];
+                        pieces[new Vector2(3, from.y)].position = new Vector2(3, from.y);
+                        pieces.Remove(new Vector2(0, from.y));
+                        pieces[new Vector2(3, from.y)].hasMoved = true;
                     }
                 }
             }
         }
 
-        if (pieces[(int)to.x, (int)to.y] != null)
+        if (pieces.ContainsKey(new Vector2(to.x, to.y)))
         {
-            StartCoroutine(TakeCoroutine(pieces[(int)to.x, (int)to.y].gameObject));
+            StartCoroutine(TakeCoroutine(pieces[new Vector2(to.x, to.y)].gameObject));
             audioSource.PlayOneShot(captureSound);
         } else
         {
@@ -113,20 +114,19 @@ public class Board : MonoBehaviour
         }
 
         // move piece
-        pieces[(int)to.x, (int)to.y] = fromPiece;
+        pieces[new Vector2(to.x, to.y)] = fromPiece;
         // update piece pos
-        pieces[(int)to.x, (int)to.y].position = to;
+        pieces[new Vector2(to.x, to.y)].position = to;
         // delete old pos piece
-        pieces[(int)from.x, (int)from.y] = null;
+        pieces.Remove(new Vector2(from.x, from.y));
 
         return true;
     }
 
-    public bool TestMove(Vector2 from, Vector2 to, int isWhite, PieceData[,] testPieces)
+    public bool TestMove(Vector2 from, Vector2 to, int isWhite, IDictionary<Vector2, PieceData> testPieces)
     {
-        PieceData fromPiece = testPieces[(int)from.x, (int)from.y];
-
-        if (fromPiece == null) return false;
+        if (!testPieces.ContainsKey(new Vector2(from.x, from.y))) return false;
+        PieceData fromPiece = testPieces[new Vector2(from.x, from.y)];
         if (fromPiece.isWhite != isWhite) return false;
         if (!fromPiece.LegalMoves(testPieces).Contains(to)) return false;
 
@@ -154,20 +154,20 @@ public class Board : MonoBehaviour
                     {
                         // Kingside
                         // Move Rook
-                        testPieces[5, (int)from.y] = testPieces[7, (int)from.y];
-                        testPieces[5, (int)from.y].position = new Vector2(5, from.y);
-                        testPieces[7, (int)from.y] = null;
-                        testPieces[5, (int)from.y].hasMoved = true;
+                        testPieces[new Vector2(5, from.y)] = testPieces[new Vector2(7, from.y)];
+                        testPieces[new Vector2(5, from.y)].position = new Vector2(5, from.y);
+                        testPieces.Remove(new Vector2(7, from.y));
+                        testPieces[new Vector2(5, from.y)].hasMoved = true;
                     }
                     else if (to.x == 2)
                     {
                         // Queenside
                         // Move Rook
      
-                        testPieces[3, (int)from.y] = testPieces[0, (int)from.y];
-                        testPieces[3, (int)from.y].position = new Vector2(3, from.y);
-                        testPieces[0, (int)from.y] = null;
-                        testPieces[3, (int)from.y].hasMoved = true;
+                        testPieces[new Vector2(3, from.y)] = testPieces[new Vector2(0, from.y)];
+                        testPieces[new Vector2(3, from.y)].position = new Vector2(3, from.y);
+                        testPieces.Remove(new Vector2(0, from.y));
+                        testPieces[new Vector2(3, from.y)].hasMoved = true;
                     }
                 }
 
@@ -175,11 +175,11 @@ public class Board : MonoBehaviour
         }
 
         // move piece
-        testPieces[(int)to.x, (int)to.y] = fromPiece;
+        testPieces[new Vector2(to.x, to.y)] = fromPiece;
         // update piece pos
-        testPieces[(int)to.x, (int)to.y].position = to;
+        testPieces[new Vector2(to.x, to.y)].position = to;
         // delete old pos piece
-        testPieces[(int)from.x, (int)from.y] = null;
+        testPieces.Remove(new Vector2(from.x, from.y));
 
         if (isWhite == 1 && CheckChecks(testPieces, 1))
         {
@@ -249,9 +249,9 @@ public class Board : MonoBehaviour
         for (int i = 0; i < 8; i++)
         {
             //pieces[i, 1] = Instantiate(WhitePawn, tiles[i, 1].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData;
-            pieceDict.Add(new Vector2(i, 1), Instantiate(WhitePawn, tiles[i, 1].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData);
+            pieceDict.Add(new Vector2(i, 1f), Instantiate(WhitePawn, tiles[i, 1].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData);
             //pieces[i, 6] = Instantiate(BlackPawn, tiles[i, 6].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData;
-            pieceDict.Add(new Vector2(i, 6), Instantiate(BlackPawn, tiles[i, 6].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData);
+            pieceDict.Add(new Vector2(i, 6f), Instantiate(BlackPawn, tiles[i, 6].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData);
         }
 
         // Kings
@@ -334,37 +334,34 @@ public class Board : MonoBehaviour
 
     public MateType GenerateEndState(int turn)
     {
-        List<(Vector2, List<Vector2>)> piecesAndMoves = MoveGenerator.GenerateAllMoves(pieces, turn);
+        IDictionary<Vector2, PieceData> turnPieces = turn == 1 ? whitePieces : blackPieces;
+        IDictionary<Vector2, PieceData> oppPieces = turn == 1 ? blackPieces : whitePieces;
+
+        List<(Vector2, List<Vector2>)> piecesAndMoves = MoveGenerator.GenerateAllMoves(turn);
 
         foreach ((Vector2, List<Vector2>) piece in piecesAndMoves)
         {
             foreach (Vector2 move in piece.Item2)
             {
-                PieceData[,] testPieces = DeepCopyAllPieces(pieces);
+                IDictionary<Vector2, PieceData> testPieces = DeepCopyAllPieces(pieceDict);
                 // If any move is legal, it's not checkmate
                 if (TestMove(piece.Item1, move, turn, testPieces)) return MateType.None;
             }
         }
 
         // If no moves are legal and is in check, return checkmate
-        if (CheckChecks(pieces, turn)) return MateType.Checkmate;
+        if (CheckChecks(oppPieces, turn)) return MateType.Checkmate;
         // If not in check, return stalemate
         else return MateType.Stalemate;
     }
 
-    public PieceData[,] DeepCopyAllPieces(PieceData[,] source)
+    public IDictionary<Vector2, PieceData> DeepCopyAllPieces(IDictionary<Vector2, PieceData> source)
     {
-        PieceData[,] target = new PieceData[8, 8];
+        IDictionary<Vector2, PieceData> target = new Dictionary<Vector2, PieceData>();
         
-        for (int i = 0; i < 8; i++)
+        for (int i = 0; i < source.Count; i++)
         {
-            for (int j = 0; j < 8; j++)
-            {
-                if (source[i, j] != null)
-                {
-                    target[i, j] = source[i, j].DeepCopy();
-                }
-            }
+            target.Add(source.ElementAt(i).Key, source.ElementAt(i).Value.DeepCopy());
         }
 
         return target;

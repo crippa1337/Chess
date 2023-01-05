@@ -85,11 +85,11 @@ public class MouseManager : MonoBehaviour
             if (hit.collider != null)
             {
                 Vector2 tilePos = hit.collider.gameObject.GetComponent<Tile>().position;
-                if (Board.pieces[(int)tilePos.x, (int)tilePos.y] != null)
+                if (Board.pieceDict.ContainsKey(new Vector2(tilePos.x, tilePos.y)))
                 {
-                    if (Board.pieces[(int)tilePos.x, (int)tilePos.y].isWhite == 1)
+                    if (Board.pieceDict[new Vector2(tilePos.x, tilePos.y)].isWhite == 1)
                     {
-                        heldPiece = Board.pieces[(int)tilePos.x, (int)tilePos.y];
+                        heldPiece = Board.pieceDict[new Vector2(tilePos.x, tilePos.y)];
                         DrawMoveHighlights();
                         holding = true;
                     }
@@ -106,7 +106,7 @@ public class MouseManager : MonoBehaviour
             {
                 Tile tile = hoveredTile.GetComponent<Tile>();
 
-                if (board.MovePiece(heldPiece.position, tile.position, WhiteTurn, Board.pieces))
+                if (board.MovePiece(heldPiece.position, tile.position, WhiteTurn, Board.pieceDict))
                 {
                     if (!isCountingDown) isCountingDown = true;
                     WhiteTurn = -WhiteTurn;
@@ -118,11 +118,11 @@ public class MouseManager : MonoBehaviour
                         heldPiece.hasCastled = false;
                         if (tile.position.x == 6)
                         {
-                            Board.pieces[5, (int)tile.position.y].gameObject.transform.position = board.tiles[5, (int)tile.position.y].transform.position + new Vector3(0, 0, -1);
+                            Board.pieceDict[new Vector2(5, tile.position.y)].gameObject.transform.position = board.tiles[5, (int)tile.position.y].transform.position + new Vector3(0, 0, -1);
                         }
                         else if (tile.position.x == 2)
                         {
-                            Board.pieces[3, (int)tile.position.y].gameObject.transform.position = board.tiles[3, (int)tile.position.y].transform.position + new Vector3(0, 0, -1);
+                            Board.pieceDict[new Vector2(3, tile.position.y)].gameObject.transform.position = board.tiles[3, (int)tile.position.y].transform.position + new Vector3(0, 0, -1);
                         }
                     }
                 }
@@ -134,7 +134,7 @@ public class MouseManager : MonoBehaviour
 
             ClearMoveHighlights();
             heldPiece = null;
-            canCastle = !board.CheckChecks(Board.pieces, WhiteTurn);
+            canCastle = !board.CheckChecks(Board.pieceDict, WhiteTurn);
 
             Board.MateType endState = board.GenerateEndState(WhiteTurn);
             if (endState == Board.MateType.None) return;
@@ -181,15 +181,15 @@ public class MouseManager : MonoBehaviour
         (Vector2, Vector2) bestMove = (Vector2.zero, Vector2.zero);
         await Task.Run(() =>
         {
-            bestMove = engine.MinMove(Board.pieces, 3);
+            bestMove = engine.MinMove(Board.pieceDict, 3);
         });
         // If time is up and the computer wants to move, return
         if (!canMove) return;
-        board.MovePiece(bestMove.Item1, bestMove.Item2, WhiteTurn, Board.pieces);
+        board.MovePiece(bestMove.Item1, bestMove.Item2, WhiteTurn, Board.pieceDict);
         
         //Board.pieces[(int)bestMove.Item2.x, (int)bestMove.Item2.y].gameObject.transform.position = board.tiles[(int)bestMove.Item2.x, (int)bestMove.Item2.y].transform.position + new Vector3(0, 0, -1);
         // Moves the piece representative
-        GameObject gPiece = Board.pieces[(int)bestMove.Item2.x, (int)bestMove.Item2.y].gameObject;
+        GameObject gPiece = Board.pieceDict[new Vector2(bestMove.Item2.x, bestMove.Item2.y)].gameObject;
         Vector3 from = gPiece.transform.position;
         Vector3 to = board.tiles[(int)bestMove.Item2.x, (int)bestMove.Item2.y].transform.position + new Vector3(0, 0, -1);
         StartCoroutine(board.MoveCoroutine(gPiece, from, to, 0.15f));
@@ -202,21 +202,21 @@ public class MouseManager : MonoBehaviour
         previousMoveTiles.Add(Instantiate(previousMovePrefabTile, board.tiles[(int)bestMove.Item2.x, (int)bestMove.Item2.y].transform.position + new Vector3(0, 0, -0.1f), Quaternion.identity));
 
         // Castling
-        if (Board.pieces[(int)bestMove.Item2.x, (int)bestMove.Item2.y].type == PieceData.Type.King && Board.pieces[(int)bestMove.Item2.x, (int)bestMove.Item2.y].hasCastled)
+        if (Board.pieceDict[new Vector2(bestMove.Item2.x, bestMove.Item2.y)].type == PieceData.Type.King && Board.pieceDict[new Vector2(bestMove.Item2.x, bestMove.Item2.y)].hasCastled)
         {
-            Board.pieces[(int)bestMove.Item2.x, (int)bestMove.Item2.y].hasCastled = false;
+            Board.pieceDict[new Vector2(bestMove.Item2.x, bestMove.Item2.y)].hasCastled = false;
             if (bestMove.Item2.x == 6)
             {
-                Board.pieces[5, (int)bestMove.Item2.y].gameObject.transform.position = board.tiles[5, (int)bestMove.Item2.y].transform.position + new Vector3(0, 0, -1);
+                Board.pieceDict[new Vector2(5, bestMove.Item2.y)].gameObject.transform.position = board.tiles[5, (int)bestMove.Item2.y].transform.position + new Vector3(0, 0, -1);
             }
             else if (bestMove.Item2.x == 2)
             {
-                Board.pieces[3, (int)bestMove.Item2.y].gameObject.transform.position = board.tiles[3, (int)bestMove.Item2.y].transform.position + new Vector3(0, 0, -1);
+                Board.pieceDict[new Vector2(3, bestMove.Item2.y)].gameObject.transform.position = board.tiles[3, (int)bestMove.Item2.y].transform.position + new Vector3(0, 0, -1);
             }
         }
         WhiteTurn = -WhiteTurn;
         
-        canCastle = !board.CheckChecks(Board.pieces, WhiteTurn);
+        canCastle = !board.CheckChecks(Board.pieceDict, WhiteTurn);
         
         Board.MateType endState = board.GenerateEndState(WhiteTurn);
         if (endState == Board.MateType.None) return;
@@ -250,17 +250,17 @@ public class MouseManager : MonoBehaviour
     {
         if (heldPiece == null) return;
 
-        List<Vector2> legalMoves = heldPiece.LegalMoves(Board.pieces);
+        List<Vector2> legalMoves = heldPiece.LegalMoves(Board.pieceDict);
         
         foreach (Vector2 move in legalMoves)
         {
-            PieceData[,] testPieces = board.DeepCopyAllPieces(Board.pieces);
+            IDictionary<Vector2, PieceData> testPieces = board.DeepCopyAllPieces(Board.pieceDict);
             if (!board.TestMove(heldPiece.position, move, WhiteTurn, testPieces))
             {
                 continue;
             }
             
-            if (Board.pieces[(int)move.x, (int)move.y] == null)
+            if (!Board.pieceDict.ContainsKey(new Vector2(move.x, move.y)))
             {
                 GameObject moveHighlight = Instantiate(MoveHighlightPrefabPiece, board.tiles[(int)move.x, (int)move.y].transform.position + new Vector3(0, 0, -1), Quaternion.identity);
                 MoveHighlightPieces.Add(moveHighlight);
