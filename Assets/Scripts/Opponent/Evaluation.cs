@@ -57,36 +57,35 @@ public class Evaluation : MonoBehaviour
                     };
 
                     int piecePosValue;
-                    if (piece.isWhite == 1)
+                    if (piece.isWhite == -1)
                     {
                         piecePosValue = type switch
                         {
-                            PieceData.Type.Pawn => PieceSquareTables.pawns[i, j],
-                            PieceData.Type.Knight => PieceSquareTables.knights[i, j],
-                            PieceData.Type.Bishop => PieceSquareTables.bishops[i, j],
-                            PieceData.Type.Rook => PieceSquareTables.rooks[i, j],
-                            PieceData.Type.Queen => PieceSquareTables.queens[i, j],
-                            PieceData.Type.King => PieceSquareTables.kings[i, j],
+                            PieceData.Type.Pawn => PieceSquareTables.pawns[j, i],
+                            PieceData.Type.Knight => PieceSquareTables.knights[j, i],
+                            PieceData.Type.Bishop => PieceSquareTables.bishops[j, i],
+                            PieceData.Type.Rook => PieceSquareTables.rooks[j, i],
+                            PieceData.Type.Queen => PieceSquareTables.queens[j, i],
+                            PieceData.Type.King => PieceSquareTables.kings[j, i],
+                            _ => 0
+                        };
+                        blackScore += pieceValue + piecePosValue;
+                    }
+                    
+                    else if (piece.isWhite == 1)
+                    {
+                        piecePosValue = type switch
+                        {
+                            PieceData.Type.Pawn => PieceSquareTables.pawns[7 - j, i],
+                            PieceData.Type.Knight => PieceSquareTables.knights[7 - j, i],
+                            PieceData.Type.Bishop => PieceSquareTables.bishops[7 - j, i],
+                            PieceData.Type.Rook => PieceSquareTables.rooks[7 - j, i],
+                            PieceData.Type.Queen => PieceSquareTables.queens[7 - j, i],
+                            PieceData.Type.King => PieceSquareTables.kings[7 - j, i],
                             _ => 0
                         };
 
                         whiteScore += pieceValue + piecePosValue;
-                    }
-
-                    else if (piece.isWhite == -1)
-                    {
-                        piecePosValue = type switch
-                        {
-                            PieceData.Type.Pawn => PieceSquareTables.pawns[7 - i, j],
-                            PieceData.Type.Knight => PieceSquareTables.knights[7 - i, j],
-                            PieceData.Type.Bishop => PieceSquareTables.bishops[7 - i, j],
-                            PieceData.Type.Rook => PieceSquareTables.rooks[7 - i, j],
-                            PieceData.Type.Queen => PieceSquareTables.queens[7 - i, j],
-                            PieceData.Type.King => PieceSquareTables.kings[7 - i, j],
-                            _ => 0
-                        };
-
-                        blackScore += pieceValue + piecePosValue;
                     }
                 }
             }

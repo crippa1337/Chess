@@ -6,11 +6,7 @@ using UnityEngine;
 
 public class Board : MonoBehaviour
 {
-
-    //public static PieceData[,] pieces = new PieceData[8, 8];
-    public static IDictionary<Vector2, PieceData> pieceDict = new Dictionary<Vector2, PieceData>();
-    public static IDictionary<Vector2, PieceData> whitePieces = new Dictionary<Vector2, PieceData>();
-    public static IDictionary<Vector2, PieceData> blackPieces = new Dictionary<Vector2, PieceData>();
+    public static PieceData[,] pieces = new PieceData[8, 8];
     
     public GameObject[,] tiles = new GameObject[8, 8];
     public static Vector2 white_kingpos = new Vector2(4, 0);
@@ -57,7 +53,7 @@ public class Board : MonoBehaviour
 
     public bool MovePiece(Vector2 from, Vector2 to, int isWhite, PieceData[,] pieces)
     {
-        PieceData[,] testPieces = DeepCopyAllPieces(pieces);
+        PieceData[,] testPieces = DeepCopy(pieces);
         if (!TestMove(from, to, isWhite, testPieces)) return false;
         PieceData fromPiece = pieces[(int)from.x, (int)from.y];
 
@@ -163,7 +159,6 @@ public class Board : MonoBehaviour
                     {
                         // Queenside
                         // Move Rook
-     
                         testPieces[3, (int)from.y] = testPieces[0, (int)from.y];
                         testPieces[3, (int)from.y].position = new Vector2(3, from.y);
                         testPieces[0, (int)from.y] = null;
@@ -174,11 +169,9 @@ public class Board : MonoBehaviour
             }
         }
 
-        // move piece
+        // Move Piece
         testPieces[(int)to.x, (int)to.y] = fromPiece;
-        // update piece pos
         testPieces[(int)to.x, (int)to.y].position = to;
-        // delete old pos piece
         testPieces[(int)from.x, (int)from.y] = null;
 
         if (isWhite == 1 && CheckChecks(testPieces, 1))
@@ -238,88 +231,75 @@ public class Board : MonoBehaviour
     public void InitStartingPositions()
     {
         // Destroy and clear all pieces
-        foreach (PieceData piece in pieceDict.Values)
+        foreach (PieceData piece in pieces)
         {
+            if (piece == null) continue;
             Destroy(piece.gameObject);
         }
 
-        pieceDict.Clear();
+        Array.Clear(pieces, 0, pieces.Length);
+
 
         // Pawns
         for (int i = 0; i < 8; i++)
         {
-            //pieces[i, 1] = Instantiate(WhitePawn, tiles[i, 1].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData;
-            pieceDict.Add(new Vector2(i, 1), Instantiate(WhitePawn, tiles[i, 1].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData);
-            //pieces[i, 6] = Instantiate(BlackPawn, tiles[i, 6].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData;
-            pieceDict.Add(new Vector2(i, 6), Instantiate(BlackPawn, tiles[i, 6].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData);
+            pieces[i, 1] = Instantiate(WhitePawn, tiles[i, 1].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData;
+            pieces[i, 6] = Instantiate(BlackPawn, tiles[i, 6].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData;
         }
-
+        
         // Kings
-       //[4, 0] = Instantiate(WhiteKing, tiles[4, 0].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData;
-        pieceDict.Add(new Vector2(4, 0), Instantiate(WhiteKing, tiles[4, 0].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData);
-       //[4, 7] = Instantiate(BlackKing, tiles[4, 7].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData;
-        pieceDict.Add(new Vector2(4, 7), Instantiate(BlackKing, tiles[4, 7].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData);
+        pieces[4, 0] = Instantiate(WhiteKing, tiles[4, 0].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData;
+        pieces[4, 7] = Instantiate(BlackKing, tiles[4, 7].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData;
 
         // Queens
-       //[3, 0] = Instantiate(WhiteQueen, tiles[3, 0].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData;
-        pieceDict.Add(new Vector2(3, 0), Instantiate(WhiteQueen, tiles[3, 0].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData);
-       //[3, 7] = Instantiate(BlackQueen, tiles[3, 7].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData;
-        pieceDict.Add(new Vector2(3, 7), Instantiate(BlackQueen, tiles[3, 7].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData);
+        pieces[3, 0] = Instantiate(WhiteQueen, tiles[3, 0].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData;
+        pieces[3, 7] = Instantiate(BlackQueen, tiles[3, 7].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData;
 
         // Rooks
-       //[0, 7] = Instantiate(BlackRook, tiles[0, 7].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData;
-        pieceDict.Add(new Vector2(0, 7), Instantiate(BlackRook, tiles[0, 7].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData);
-       //[7, 7] = Instantiate(BlackRook, tiles[7, 7].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData;
-        pieceDict.Add(new Vector2(7, 7), Instantiate(BlackRook, tiles[7, 7].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData);
-       //[0, 0] = Instantiate(WhiteRook, tiles[0, 0].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData;
-        pieceDict.Add(new Vector2(0, 0), Instantiate(WhiteRook, tiles[0, 0].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData);
-       //[7, 0] = Instantiate(WhiteRook, tiles[7, 0].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData;
-        pieceDict.Add(new Vector2(7, 0), Instantiate(WhiteRook, tiles[7, 0].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData);
+        pieces[0, 7] = Instantiate(BlackRook, tiles[0, 7].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData;
+        pieces[7, 7] = Instantiate(BlackRook, tiles[7, 7].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData;
+        pieces[0, 0] = Instantiate(WhiteRook, tiles[0, 0].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData;
+        pieces[7, 0] = Instantiate(WhiteRook, tiles[7, 0].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData;
 
         // Bishops
-       //[2, 7] = Instantiate(BlackBishop, tiles[2, 7].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData;
-        pieceDict.Add(new Vector2(2, 7), Instantiate(BlackBishop, tiles[2, 7].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData);
-       //[5, 7] = Instantiate(BlackBishop, tiles[5, 7].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData;
-        pieceDict.Add(new Vector2(5, 7), Instantiate(BlackBishop, tiles[5, 7].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData);
-       //[2, 0] = Instantiate(WhiteBishop, tiles[2, 0].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData;
-        pieceDict.Add(new Vector2(2, 0), Instantiate(WhiteBishop, tiles[2, 0].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData);
-       //[5, 0] = Instantiate(WhiteBishop, tiles[5, 0].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData;
-        pieceDict.Add(new Vector2(5, 0), Instantiate(WhiteBishop, tiles[5, 0].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData);
+        pieces[2, 7] = Instantiate(BlackBishop, tiles[2, 7].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData;
+        pieces[5, 7] = Instantiate(BlackBishop, tiles[5, 7].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData;
+        pieces[2, 0] = Instantiate(WhiteBishop, tiles[2, 0].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData;
+        pieces[5, 0] = Instantiate(WhiteBishop, tiles[5, 0].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData;
 
         // Knights
-       //[1, 7] = Instantiate(BlackKnight, tiles[1, 7].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData;
-        pieceDict.Add(new Vector2(1, 7), Instantiate(BlackKnight, tiles[1, 7].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData);
-       //[6, 7] = Instantiate(BlackKnight, tiles[6, 7].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData;
-        pieceDict.Add(new Vector2(6, 7), Instantiate(BlackKnight, tiles[6, 7].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData);
-       //[1, 0] = Instantiate(WhiteKnight, tiles[1, 0].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData;
-        pieceDict.Add(new Vector2(1, 0), Instantiate(WhiteKnight, tiles[1, 0].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData);
-       //[6, 0] = Instantiate(WhiteKnight, tiles[6, 0].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData;
-        pieceDict.Add(new Vector2(6, 0), Instantiate(WhiteKnight, tiles[6, 0].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData);
+        pieces[1, 7] = Instantiate(BlackKnight, tiles[1, 7].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData;
+        pieces[6, 7] = Instantiate(BlackKnight, tiles[6, 7].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData;
+        pieces[1, 0] = Instantiate(WhiteKnight, tiles[1, 0].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData;
+        pieces[6, 0] = Instantiate(WhiteKnight, tiles[6, 0].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData;
 
-        for (int i = 0; i < pieceDict.Count; i++)
+        for (int i = 0; i < 8; i++)
         {
-            PieceData piece = pieceDict.ElementAt(i).Value;
-            piece.position = pieceDict.ElementAt(i).Key;
+            for (int j = 0; j < 8; j++)
+            {
+                PieceData piece = pieces[i, j];
+                if (piece == null) continue;
 
-            if (piece.isWhite == 1)
-            {
-                whitePieces.Add(piece.position, piece);
-            }
-            else if (piece.isWhite == -1)
-            {
-                blackPieces.Add(piece.position, piece);
+                piece.position = new Vector2(i, j);
             }
         }
     }
 
-    public bool CheckChecks(IDictionary<Vector2, PieceData> oppPieces, int caller)
+    public bool CheckChecks(PieceData[,] pieces, int caller)
     {
         Vector2 kingPos = caller == 1 ? white_kingpos : black_kingpos;
 
-        for (int i = 0; i < oppPieces.Count; i++)
+        for (int i = 0; i < 8; i++)
         {
-            PieceData piece = oppPieces.ElementAt(i).Value;
-            if (piece.LegalMoves(pieceDict).Contains(kingPos)) return true;
+            for (int j = 0; j < 8; j++)
+            {
+                PieceData piece = pieces[i, j];
+                if (piece == null) continue;
+                if (piece.isWhite == caller) continue;
+                
+                // Only checks moves for the opposite color of caller
+                if (piece.LegalMoves(pieces).Contains(kingPos)) return true;
+            }
         }
 
         return false;
@@ -340,7 +320,7 @@ public class Board : MonoBehaviour
         {
             foreach (Vector2 move in piece.Item2)
             {
-                PieceData[,] testPieces = DeepCopyAllPieces(pieces);
+                PieceData[,] testPieces = DeepCopy(pieces);
                 // If any move is legal, it's not checkmate
                 if (TestMove(piece.Item1, move, turn, testPieces)) return MateType.None;
             }
@@ -352,7 +332,7 @@ public class Board : MonoBehaviour
         else return MateType.Stalemate;
     }
 
-    public PieceData[,] DeepCopyAllPieces(PieceData[,] source)
+    public PieceData[,] DeepCopy(PieceData[,] source)
     {
         PieceData[,] target = new PieceData[8, 8];
         

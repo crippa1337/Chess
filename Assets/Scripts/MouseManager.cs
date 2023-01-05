@@ -9,7 +9,7 @@ public class MouseManager : MonoBehaviour
     bool holding;
     bool canMove = true;
     [SerializeField] int whiteTurn;
-    int WhiteTurn 
+    public int WhiteTurn 
     {
         get
         {
@@ -27,8 +27,13 @@ public class MouseManager : MonoBehaviour
     }
     [SerializeField] Board board;
     [SerializeField] Engine engine;
+    [SerializeField] Evaluation evaluation;
+    [SerializeField] UI ui;
     PieceData heldPiece;
     GameObject hoveredTile;
+    public static bool canCastle = true;
+
+    [Header("Highlights")]
     [SerializeField] GameObject highlightPrefabTile;
     GameObject highlightTile;
     [SerializeField] GameObject MoveHighlightPrefabPiece;
@@ -38,19 +43,19 @@ public class MouseManager : MonoBehaviour
     [SerializeField] GameObject previousMovePrefabTile;
     List<GameObject> previousMoveTiles = new();
 
-    [SerializeField] GameObject newGameButton;
+    [Header("New Game")]
     [SerializeField] TMP_Text winText;
+    [SerializeField] GameObject newGameButton;
+
+    [Header("Timers")]
+    [SerializeField] GameObject timerDivider;
     [SerializeField] TMP_Text blackTimerText;
     [SerializeField] TMP_Text whiteTimerText;
-    [SerializeField] GameObject timerDivider;
     [SerializeField] float startingTimeSeconds;
     bool isCountingDown = false;
     float blackTimer;
     float whiteTimer;
 
-    public static bool canCastle = true;
-    
-    // Start is called before the first frame update
     void Start()
     {
         highlightTile = Instantiate(highlightPrefabTile, new Vector2(-1000, 5000), Quaternion.identity);
@@ -62,7 +67,6 @@ public class MouseManager : MonoBehaviour
         DisplayTime(whiteTimer - 1, whiteTimerText);
     }
 
-    // Update is called once per frame
     void Update()
     {
 
@@ -179,12 +183,16 @@ public class MouseManager : MonoBehaviour
     async void ComputerMove()
     {
         (Vector2, Vector2) bestMove = (Vector2.zero, Vector2.zero);
+        int evalScore = 0;
+
         await Task.Run(() =>
         {
-            bestMove = engine.MinMove(Board.pieces, 3);
+            (bestMove, evalScore) = engine.MinMove(Board.pieces, 3);
         });
+
         // If time is up and the computer wants to move, return
         if (!canMove) return;
+        ui.updateEngineText(evalScore);
         board.MovePiece(bestMove.Item1, bestMove.Item2, WhiteTurn, Board.pieces);
         
         //Board.pieces[(int)bestMove.Item2.x, (int)bestMove.Item2.y].gameObject.transform.position = board.tiles[(int)bestMove.Item2.x, (int)bestMove.Item2.y].transform.position + new Vector3(0, 0, -1);
@@ -254,7 +262,7 @@ public class MouseManager : MonoBehaviour
         
         foreach (Vector2 move in legalMoves)
         {
-            PieceData[,] testPieces = board.DeepCopyAllPieces(Board.pieces);
+            PieceData[,] testPieces = board.DeepCopy(Board.pieces);
             if (!board.TestMove(heldPiece.position, move, WhiteTurn, testPieces))
             {
                 continue;

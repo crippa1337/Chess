@@ -1,9 +1,4 @@
-using System.Collections;
 using System.Collections.Generic;
-using System.Data;
-using System.Runtime.InteropServices.WindowsRuntime;
-using System.Threading.Tasks;
-using Unity.VisualScripting.Dependencies.NCalc;
 using UnityEngine;
 
 public class Engine : MonoBehaviour
@@ -35,7 +30,7 @@ public class Engine : MonoBehaviour
                 foreach (Vector2 move in pieceMoves.Item2)
                 {
                     Vector2 from = pieceMoves.Item1;
-                    PieceData[,] testPieces = board.DeepCopyAllPieces(pieces);
+                    PieceData[,] testPieces = board.DeepCopy(pieces);
                     if (board.TestMove(from, move, 1, testPieces))
                     {
                         int eval = MiniMax(testPieces, depth - 1, alpha, beta, false);
@@ -59,7 +54,7 @@ public class Engine : MonoBehaviour
                 foreach (Vector2 move in pieceMoves.Item2)
                 {
                     Vector2 from = pieceMoves.Item1;
-                    PieceData[,] testPieces = board.DeepCopyAllPieces(pieces);
+                    PieceData[,] testPieces = board.DeepCopy(pieces);
                     if (board.TestMove(from, move, -1, testPieces))
                     {
                         int eval = MiniMax(testPieces, depth - 1, alpha, beta, true);
@@ -86,7 +81,7 @@ public class Engine : MonoBehaviour
             foreach (Vector2 move in pieceMoves.Item2)
             {
                 Vector2 from = pieceMoves.Item1;
-                PieceData[,] testPieces = board.DeepCopyAllPieces(pieces);
+                PieceData[,] testPieces = board.DeepCopy(pieces);
                 if (board.TestMove(from, move, 1, testPieces))
                 {
                     int eval = MiniMax(testPieces, depth, negInfinity, infinity, false);
@@ -99,11 +94,10 @@ public class Engine : MonoBehaviour
             }
         }
 
-        Debug.Log(bestMove);
         return bestMove;
     }
 
-    public (Vector2, Vector2) MinMove(PieceData[,] pieces, int depth)
+    public ((Vector2, Vector2), int) MinMove(PieceData[,] pieces, int depth)
     {
         int minEval = infinity;
         (Vector2, Vector2) bestMove = (Vector2.zero, Vector2.zero);
@@ -113,7 +107,7 @@ public class Engine : MonoBehaviour
             foreach (Vector2 move in pieceMoves.Item2)
             {
                 Vector2 from = pieceMoves.Item1;
-                PieceData[,] testPieces = board.DeepCopyAllPieces(pieces);
+                PieceData[,] testPieces = board.DeepCopy(pieces);
                 if (board.TestMove(from, move, -1, testPieces))
                 {
                     int eval = MiniMax(testPieces, depth, negInfinity, infinity, true);
@@ -126,7 +120,6 @@ public class Engine : MonoBehaviour
             }
         }
 
-        return bestMove;
+        return (bestMove, minEval);
     }
-
 }

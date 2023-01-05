@@ -11,9 +11,9 @@ public class MoveGenerator : MonoBehaviour
         {
             for (int j = 0; j < 8; j++)
             {
-                if (pieces[i, j] != null && pieces[i, j].isWhite == isWhite)
+                PieceData piece = pieces[i, j];
+                if (piece != null && piece.isWhite == isWhite)
                 {
-                    PieceData piece = pieces[i, j];
                     List<Vector2> moves = piece.LegalMoves(pieces);
                     
                     if (moves.Count != 0)

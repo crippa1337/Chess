@@ -68,7 +68,7 @@ public class PieceData
         return copy;
     }
 
-    public List<Vector2> LegalMoves(IDictionary<Vector2, PieceData> pieces)
+    public List<Vector2> LegalMoves(PieceData[,] pieces)
     {
         switch (type) {
             case Type.Pawn:
@@ -88,7 +88,7 @@ public class PieceData
         }
     }
 
-    public List<Vector2> StraightMoves(IDictionary<Vector2, PieceData> pieces)
+    public List<Vector2> StraightMoves(PieceData[,] pieces)
     {
         List<Vector2> legalMoves = new();
         bool[] axes = { true, true, true, true };
@@ -123,7 +123,7 @@ public class PieceData
                     continue;
                 }
 
-                PieceData currentPiece = pieces[new Vector2(newMove.x, newMove.y)];
+                PieceData currentPiece = pieces[(int)newMove.x, (int)newMove.y];
 
                 if (currentPiece == null)
                 {
@@ -150,7 +150,7 @@ public class PieceData
         return legalMoves;
     }
 
-    public List<Vector2> DiagonalMoves(IDictionary<Vector2, PieceData> pieces)
+    public List<Vector2> DiagonalMoves(PieceData[,] pieces)
     {
         List<Vector2> legalMoves = new();
         bool[] axes = { true, true, true, true };
@@ -193,7 +193,7 @@ public class PieceData
                     continue;
                 }
 
-                PieceData currentPiece = pieces[new Vector2(newMove.x, newMove.y)];
+                PieceData currentPiece = pieces[(int)newMove.x, (int)newMove.y];
 
                 if (currentPiece == null)
                 {
@@ -220,7 +220,7 @@ public class PieceData
         return legalMoves;
     }
 
-    public List<Vector2> RemoveIllegalMoves(List<Vector2> potentialMoves, IDictionary<Vector2, PieceData> pieces)
+    public List<Vector2> RemoveIllegalMoves(List<Vector2> potentialMoves, PieceData[,] pieces)
     {
 
         List<Vector2> legalMoves = new();
@@ -232,7 +232,7 @@ public class PieceData
                 continue;
             }
 
-            if (pieces[new Vector2(move.x, move.y)] != null && pieces[new Vector2(move.x, move.y)].isWhite == isWhite)
+            if (pieces[(int)move.x, (int)move.y] != null && pieces[(int)move.x, (int)move.y].isWhite == isWhite)
             {
                 continue;
             }
@@ -243,7 +243,7 @@ public class PieceData
         return legalMoves;
     }
 
-    public List<Vector2> PawnMoves(IDictionary<Vector2, PieceData> pieces)
+    public List<Vector2> PawnMoves(PieceData[,] pieces)
     {
         List<Vector2> moveMoves = new();
         List<Vector2> attackMoves = new();
@@ -251,7 +251,7 @@ public class PieceData
 
         if (!hasMoved)
         {
-            if (pieces[new Vector2(position.x, position.y + (1 * isWhite))] == null)
+            if (pieces[(int)position.x, (int)position.y + (1 * isWhite)] == null)
             {
                 moveMoves.Add(new(position.x, position.y + (2 * isWhite)));
             }
@@ -265,7 +265,7 @@ public class PieceData
                 continue;
             }
 
-            if (pieces[new Vector2(move.x, move.y)] == null)
+            if (pieces[(int)move.x, (int)move.y] == null)
             {
                 legalMoves.Add(move);
             }
