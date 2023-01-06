@@ -8,10 +8,12 @@ public class Board : MonoBehaviour
     public GameObject[,] tiles = new GameObject[8, 8];
     public static BoardData board;
 
-    [SerializeField] GameObject Tile;
+    [Header("Board")]
     float TileScale;
+    [SerializeField] GameObject Tile;
     [SerializeField] Color FirstColor;
     [SerializeField] Color SecondColor;
+    [SerializeField] string fenStartingPos;
 
     [Space(20)]
     [Header("Pieces")]
@@ -44,7 +46,7 @@ public class Board : MonoBehaviour
         audioSource = GetComponent<AudioSource>();
         InitBoard();
         // InitStartingPositions();
-        InitFENPosition("4r3/1pp2rbk/6pn/4n3/P3BN1q/1PB2bPP/8/2Q1RRK1 b - - 0 31");
+        InitFENPosition();
     }
     
     public bool MovePiece(Vector2 from, Vector2 to, int isWhite, BoardData board)
@@ -57,8 +59,6 @@ public class Board : MonoBehaviour
 
         if (fromPiece.type == PieceData.Type.King || fromPiece.type == PieceData.Type.Rook || fromPiece.type == PieceData.Type.Pawn)
         {
-            fromPiece.hasMoved = true;
-            
             if (fromPiece.type == PieceData.Type.Pawn)
             {
                 if (to == board.enPassant)
@@ -68,6 +68,13 @@ public class Board : MonoBehaviour
                     audioSource.PlayOneShot(captureSound);
                     board.pieces[(int)to.x, (int)from.y] = null;
                 }
+            }
+
+            if (fromPiece.type == PieceData.Type.Rook)
+            {
+                (int, int) index = fromPiece.isWhite == 1 ? (0, 1) : (2, 3);
+                if (from.x == 7 && board.castling[index.Item1]) board.castling[index.Item1] = false; // King side
+                if (from.x == 0 && board.castling[index.Item2]) board.castling[index.Item2] = false; // Queen side
             }
             
             // Update king positions
@@ -82,9 +89,13 @@ public class Board : MonoBehaviour
                     board.black_kingpos = to;
                 }
 
+                // Update castling
+                (int, int) index = fromPiece.isWhite == 1 ? (0, 1) : (2, 3);
+                board.castling[index.Item1] = false;
+                board.castling[index.Item2] = false;
+
                 if (Math.Abs(from.x - to.x) == 2)
                 {
-                    fromPiece.hasCastled = true;
                     // Castling
                     if (to.x == 6)
                     {
@@ -93,7 +104,6 @@ public class Board : MonoBehaviour
                         board.pieces[5, (int)from.y] = board.pieces[7, (int)from.y];
                         board.pieces[5, (int)from.y].position = new Vector2(5, from.y);
                         board.pieces[7, (int)from.y] = null;
-                        board.pieces[5, (int)from.y].hasMoved = true;
                     }
                     else if (to.x == 2)
                     {
@@ -102,7 +112,6 @@ public class Board : MonoBehaviour
                         board.pieces[3, (int)from.y] = board.pieces[0, (int)from.y];
                         board.pieces[3, (int)from.y].position = new Vector2(3, from.y);
                         board.pieces[0, (int)from.y] = null;
-                        board.pieces[3, (int)from.y].hasMoved = true;
                     }
                 }
             }
@@ -143,8 +152,6 @@ public class Board : MonoBehaviour
         {
             audioSource.PlayOneShot(moveSound);
         }
-        
-        Debug.Log(board.enPassant);
 
         // move piece
         board.pieces[(int)to.x, (int)to.y] = fromPiece;
@@ -164,8 +171,6 @@ public class Board : MonoBehaviour
         PieceData fromPiece = testBoard.pieces[(int)from.x, (int)from.y];
         if (fromPiece.type == PieceData.Type.King || fromPiece.type == PieceData.Type.Rook || fromPiece.type == PieceData.Type.Pawn)
         {
-            fromPiece.hasMoved = true;
-
             if (fromPiece.type == PieceData.Type.Pawn)
             {
                 if (to == testBoard.enPassant)
@@ -173,6 +178,13 @@ public class Board : MonoBehaviour
                     // En Passant Capture
                     testBoard.pieces[(int)to.x, (int)from.y] = null;
                 }
+            }
+
+            if (fromPiece.type == PieceData.Type.Rook)
+            {
+                (int, int) index = fromPiece.isWhite == 1 ? (0, 1) : (2, 3);
+                if (from.x == 7 && testBoard.castling[index.Item1]) testBoard.castling[index.Item1] = false; // King side
+                if (from.x == 0 && testBoard.castling[index.Item2]) testBoard.castling[index.Item2] = false; // Queen side
             }
 
             // Update king positions
@@ -187,10 +199,14 @@ public class Board : MonoBehaviour
                     testBoard.black_kingpos = to;
                 }
 
+                // Update castling
+                (int, int) index = fromPiece.isWhite == 1 ? (0, 1) : (2, 3);
+                testBoard.castling[index.Item1] = false;
+                testBoard.castling[index.Item2] = false;
+
                 if (Math.Abs(from.x - to.x) == 2)
                 {
                     // Castling
-
                     if (to.x == 6)
                     {
                         // Kingside
@@ -198,7 +214,6 @@ public class Board : MonoBehaviour
                         testBoard.pieces[5, (int)from.y] = testBoard.pieces[7, (int)from.y];
                         testBoard.pieces[5, (int)from.y].position = new Vector2(5, from.y);
                         testBoard.pieces[7, (int)from.y] = null;
-                        testBoard.pieces[5, (int)from.y].hasMoved = true;
                     }
                     else if (to.x == 2)
                     {
@@ -207,10 +222,8 @@ public class Board : MonoBehaviour
                         testBoard.pieces[3, (int)from.y] = testBoard.pieces[0, (int)from.y];
                         testBoard.pieces[3, (int)from.y].position = new Vector2(3, from.y);
                         testBoard.pieces[0, (int)from.y] = null;
-                        testBoard.pieces[3, (int)from.y].hasMoved = true;
                     }
                 }
-
             }
         }
 
@@ -247,8 +260,6 @@ public class Board : MonoBehaviour
 
         if (fromPiece.type == PieceData.Type.King || fromPiece.type == PieceData.Type.Rook || fromPiece.type == PieceData.Type.Pawn)
         {
-            fromPiece.hasMoved = true;
-
             if (fromPiece.type == PieceData.Type.Pawn)
             {
                 if (to == testBoard.enPassant)
@@ -256,6 +267,13 @@ public class Board : MonoBehaviour
                     // En Passant Capture
                     testBoard.pieces[(int)to.x, (int)from.y] = null;
                 }
+            }
+
+            if (fromPiece.type == PieceData.Type.Rook)
+            {
+                (int, int) index = fromPiece.isWhite == 1 ? (0, 1) : (2, 3);
+                if (from.x == 7 && testBoard.castling[index.Item1]) testBoard.castling[index.Item1] = false; // King side
+                if (from.x == 0 && testBoard.castling[index.Item2]) testBoard.castling[index.Item2] = false; // Queen side
             }
 
             // Update king positions
@@ -270,10 +288,14 @@ public class Board : MonoBehaviour
                     testBoard.black_kingpos = to;
                 }
 
+                // Update castling
+                (int, int) index = fromPiece.isWhite == 1 ? (0, 1) : (2, 3);
+                testBoard.castling[index.Item1] = false;
+                testBoard.castling[index.Item2] = false;
+
                 if (Math.Abs(from.x - to.x) == 2)
                 {
                     // Castling
-
                     if (to.x == 6)
                     {
                         // Kingside
@@ -281,7 +303,6 @@ public class Board : MonoBehaviour
                         testBoard.pieces[5, (int)from.y] = testBoard.pieces[7, (int)from.y];
                         testBoard.pieces[5, (int)from.y].position = new Vector2(5, from.y);
                         testBoard.pieces[7, (int)from.y] = null;
-                        testBoard.pieces[5, (int)from.y].hasMoved = true;
                     }
                     else if (to.x == 2)
                     {
@@ -290,10 +311,8 @@ public class Board : MonoBehaviour
                         testBoard.pieces[3, (int)from.y] = testBoard.pieces[0, (int)from.y];
                         testBoard.pieces[3, (int)from.y].position = new Vector2(3, from.y);
                         testBoard.pieces[0, (int)from.y] = null;
-                        testBoard.pieces[3, (int)from.y].hasMoved = true;
                     }
                 }
-
             }
         }
 
@@ -362,8 +381,9 @@ public class Board : MonoBehaviour
                 Destroy(piece.gameObject);
             }
         }
-        
-        board = new BoardData(new PieceData[8, 8], new Vector2(4, 0), new Vector2(4, 7), new Vector2(-1, -1), 0);
+
+        bool[] castling = new bool[4] { true, true, true, true };
+        board = new BoardData(new PieceData[8, 8], new Vector2(4, 0), new Vector2(4, 7), new Vector2(-1, -1), castling, 0);
         mm.WhiteTurn = 1;
 
         // Pawns
@@ -411,9 +431,10 @@ public class Board : MonoBehaviour
         }
     }
     
-    public void InitFENPosition(string fen)
+    public void InitFENPosition()
     {
-        board = new BoardData(new PieceData[8, 8], Vector2.zero, Vector2.zero, new Vector2(-1, -1), 0);
+        string fen = fenStartingPos;
+        board = new BoardData(new PieceData[8, 8], Vector2.zero, Vector2.zero, new Vector2(-1, -1), new bool[4] { false, false, false, false }, 0);
 
         // Split FEN string
         string[] fenSplit = fen.Split(' ');
@@ -479,7 +500,16 @@ public class Board : MonoBehaviour
 
                     // Adder is for empty spaces in FEN notation, [7 - i] is due to FEN boards being flipped compared to mine
                     board.pieces[j + adder, 7 - i] = Instantiate(piece, tiles[j + adder, 7 - i].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData;
-                    Debug.Log("Piece: " + piece + "at " + j + adder);
+
+                    // Set King pos
+                    if (piece == WhiteKing)
+                    {
+                        board.white_kingpos = new Vector2(j + adder, 7 - i);
+                    }
+                    else if (piece == BlackKing)
+                    {
+                        board.black_kingpos = new Vector2(j + adder, 7 - i);
+                    }
                 }
             }
         }
@@ -499,8 +529,12 @@ public class Board : MonoBehaviour
         mm.WhiteTurn = fenSplit[1] == "w" ? 1 : -1;
 
         // Castling
-        // TODO
-        
+        string castling = fenSplit[2];
+        if (castling.Contains("K")) board.castling[0] = true;
+        if (castling.Contains("Q")) board.castling[1] = true;
+        if (castling.Contains("k")) board.castling[2] = true;
+        if (castling.Contains("q")) board.castling[3] = true;
+
         // En Passant
         if (fenSplit[3] != "-")
         {

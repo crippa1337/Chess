@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class PieceData
@@ -8,9 +9,6 @@ public class PieceData
     public Vector2 position;
     public Type type;
     public GameObject gameObject;
-
-    public bool hasMoved = false;
-    public bool hasCastled = false;
 
     public enum Type
     { 
@@ -23,16 +21,13 @@ public class PieceData
     }
 
     // Copy piece
-    public PieceData(int isWhite, Vector2 position, Type type, bool hasMoved, bool hasCastled)
+    public PieceData(int isWhite, Vector2 position, Type type)
     {
         this.isWhite = isWhite;
         this.position = position;
         this.type = type;
-        this.hasMoved = hasMoved;
-        this.hasCastled = hasCastled;
     }
 
-    // General piece
     public PieceData(GameObject gameObject, int isWhite, Vector2 position, Type type)
     {
         this.gameObject = gameObject;
@@ -41,30 +36,9 @@ public class PieceData
         this.type = type;
     }
 
-    // Pawn & rook
-    public PieceData(GameObject gameObject, int isWhite, Vector2 position, Type type, bool hasMoved)
-    {
-        this.gameObject = gameObject;
-        this.isWhite = isWhite;
-        this.position = position;
-        this.type = type;
-        this.hasMoved = hasMoved;
-    }
-
-    // King
-    public PieceData(GameObject gameObject, int isWhite, Vector2 position, Type type, bool hasMoved, bool hasCastled)
-    {
-        this.gameObject = gameObject;
-        this.isWhite = isWhite;
-        this.position = position;
-        this.type = type;
-        this.hasMoved = hasMoved;
-        this.hasCastled = hasCastled;
-    }
-
     public PieceData DeepCopy()
     {
-        return new PieceData(isWhite, position, type, hasMoved, hasCastled);
+        return new PieceData(isWhite, position, type);
     }
 
     public List<Vector2> LegalMoves(BoardData board)
@@ -248,13 +222,15 @@ public class PieceData
         List<Vector2> attackMoves = new();
         List<Vector2> legalMoves = new();
 
-        if (!hasMoved)
+
+        if (board.pieces[(int)position.x, (int)position.y + (1 * isWhite)] == null)
         {
-            if (board.pieces[(int)position.x, (int)position.y + (1 * isWhite)] == null)
+            if (board.pieces[(int)position.x, (int)position.y].isWhite == 1 && position.y == 1 || board.pieces[(int)position.x, (int)position.y].isWhite == -1 && position.y == 6)
             {
-                moveMoves.Add(new(position.x, position.y + (2 * isWhite)));
+                moveMoves.Add(new Vector2(position.x, position.y + (2 * isWhite)));
             }
         }
+        
         moveMoves.Add(new Vector2(position.x, position.y + (1 * isWhite)));
 
         foreach (Vector2 move in moveMoves)
@@ -334,24 +310,39 @@ public class PieceData
         potentialMoves.Add(new Vector2(position.x, position.y - 1));
         potentialMoves.Add(new Vector2(position.x + 1, position.y - 1));
 
-        if (!hasMoved && MouseManager.canCastle)
+        PieceData king = board.pieces[(int)position.x, (int)position.y];
+        (int, int) index = (king.isWhite == 1) ? (0, 1) : (2, 3);
+
+        if (board.castling[index.Item1])
         {
             PieceData rook1 = board.pieces[(int)position.x + 3, (int)position.y];
-            PieceData rook2 = board.pieces[(int)position.x - 4, (int)position.y];
-
-            if (rook1 != null) {
-                // If the king hasn't moved and the rook on the right hasn't moved, and there are no pieces between the king and the rook, add the move to the list of legal moves
-                if (rook1.type == Type.Rook && !rook1.hasMoved && board.pieces[(int)position.x + 1, (int)position.y] == null && board.pieces[(int)position.x + 2, (int)position.y] == null)
+            
+            // KING SIDE CASTLING
+            if (rook1 != null)
+            {
+                if (rook1.type == Type.Rook && rook1.isWhite == king.isWhite && board.castling[index.Item1])
                 {
-                    potentialMoves.Add(new Vector2(position.x + 2, position.y));
+                    if (board.pieces[(int)position.x + 1, (int)position.y] == null && board.pieces[(int)position.x + 2, (int)position.y] == null)
+                    {
+                        potentialMoves.Add(new Vector2(position.x + 2, position.y));
+                    }
                 }
             }
+        }
 
-            if (rook2 != null) {
-                // If the king hasn't moved and the rook on the left hasn't moved, and there are no pieces between the king and the rook, add the move to the list of legal moves
-                if (rook2.type == Type.Rook && !rook2.hasMoved && board.pieces[(int)position.x - 1, (int)position.y] == null && board.pieces[(int)position.x - 2, (int)position.y] == null && board.pieces[(int)position.x - 3, (int)position.y] == null)
+        if (board.castling[index.Item2])
+        {
+            PieceData rook2 = board.pieces[(int)position.x - 4, (int)position.y];
+            
+            // QUEEN SIDE CASTLING
+            if (rook2 != null)
+            {
+                if (rook2.type == Type.Rook && rook2.isWhite == king.isWhite && board.castling[index.Item2])
                 {
-                    potentialMoves.Add(new Vector2(position.x - 2, position.y));
+                    if (board.pieces[(int)position.x - 1, (int)position.y] == null && board.pieces[(int)position.x - 2, (int)position.y] == null && board.pieces[(int)position.x - 3, (int)position.y] == null)
+                    {
+                        potentialMoves.Add(new Vector2(position.x - 2, position.y));
+                    }
                 }
             }
         }

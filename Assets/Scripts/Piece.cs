@@ -13,7 +13,7 @@ public class Piece : MonoBehaviour
     
     public PieceData pieceData;
 
-    private void Awake() => pieceData = new PieceData(gameObject, isWhite, position, type, hasMoved, hasCastled);
+    private void Awake() => pieceData = new PieceData(gameObject, isWhite, position, type);
 
     private void Start()
     {

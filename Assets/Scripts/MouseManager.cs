@@ -112,6 +112,11 @@ public class MouseManager : MonoBehaviour
             if (hoveredTile != null && heldPiece != null)
             {
                 Tile tile = hoveredTile.GetComponent<Tile>();
+                bool[] copyCastling = new bool[4];
+                for (int i = 0; i < 4; i++)
+                {
+                    copyCastling[i] = Board.board.castling[i];
+                }
 
                 if (board.MovePiece(heldPiece.position, tile.position, WhiteTurn, Board.board))
                 {
@@ -120,16 +125,21 @@ public class MouseManager : MonoBehaviour
                     heldPiece.gameObject.transform.position = tile.transform.position + new Vector3(0, 0, -1);
 
                     // Castling
-                    if (heldPiece.type == PieceData.Type.King && heldPiece.hasCastled)
+                    if (heldPiece.type == PieceData.Type.King)
                     {
-                        heldPiece.hasCastled = false;
-                        if (tile.position.x == 6)
+                        (int, int) index = heldPiece.isWhite == 1 ? (0, 1) : (2, 3);
+
+                        if (tile.position.x == 6 && copyCastling[index.Item1])
                         {
-                            Board.board.pieces[5, (int)tile.position.y].gameObject.transform.position = board.tiles[5, (int)tile.position.y].transform.position + new Vector3(0, 0, -1);
+                            GameObject rookPiece = Board.board.pieces[5, (int)tile.position.y].gameObject;
+                            Vector3 rookTo = board.tiles[5, (int)tile.position.y].transform.position + new Vector3(0, 0, -1);
+                            StartCoroutine(board.MoveCoroutine(rookPiece, rookPiece.transform.position, rookTo, 0.25f));
                         }
-                        else if (tile.position.x == 2)
+                        else if (tile.position.x == 2 && copyCastling[index.Item2])
                         {
-                            Board.board.pieces[3, (int)tile.position.y].gameObject.transform.position = board.tiles[3, (int)tile.position.y].transform.position + new Vector3(0, 0, -1);
+                            GameObject rookPiece = Board.board.pieces[3, (int)tile.position.y].gameObject;
+                            Vector3 rookTo = board.tiles[3, (int)tile.position.y].transform.position + new Vector3(0, 0, -1);
+                            StartCoroutine(board.MoveCoroutine(rookPiece, rookPiece.transform.position, rookTo, 0.25f));
                         }
                     }
                 }
@@ -194,37 +204,47 @@ public class MouseManager : MonoBehaviour
         // If time is up and the computer wants to move, return
         if (!canMove) return;
 
+        bool[] copyCastling = new bool[4];
+        for (int i = 0; i < 4; i++)
+        {
+            copyCastling[i] = Board.board.castling[i];
+        }
+
         string move = board.VectorToMove(bestMove.Item1, bestMove.Item2);
         ui.updateEngineText(evalScore, nodesScore, move);
         board.MovePiece(bestMove.Item1, bestMove.Item2, WhiteTurn, Board.board);
         
-        //Board.pieces[(int)bestMove.Item2.x, (int)bestMove.Item2.y].gameObject.transform.position = board.tiles[(int)bestMove.Item2.x, (int)bestMove.Item2.y].transform.position + new Vector3(0, 0, -1);
-        // Moves the piece representative
-        GameObject gPiece = Board.board.pieces[(int)bestMove.Item2.x, (int)bestMove.Item2.y].gameObject;
-        Vector3 from = gPiece.transform.position;
-        Vector3 to = board.tiles[(int)bestMove.Item2.x, (int)bestMove.Item2.y].transform.position + new Vector3(0, 0, -1);
-        StartCoroutine(board.MoveCoroutine(gPiece, from, to, 0.15f));
+        PieceData movedPiece = Board.board.pieces[(int)bestMove.Item2.x, (int)bestMove.Item2.y];
+        Vector3 from = movedPiece.gameObject.transform.position;
+        Tile toTile = board.tiles[(int)bestMove.Item2.x, (int)bestMove.Item2.y].GetComponent<Tile>();
+        StartCoroutine(board.MoveCoroutine(movedPiece.gameObject, from, toTile.transform.position + new Vector3(0, 0, -1), 0.15f));
 
         // Deletes previous move tiles
         if (previousMoveTiles.Count > 0) foreach (GameObject t in previousMoveTiles) Destroy(t);
         previousMoveTiles.Clear();
         // Create previous move prefab at computer from and to positions
         previousMoveTiles.Add(Instantiate(previousMovePrefabTile, board.tiles[(int)bestMove.Item1.x, (int)bestMove.Item1.y].transform.position + new Vector3(0, 0, -0.1f), Quaternion.identity));
-        previousMoveTiles.Add(Instantiate(previousMovePrefabTile, board.tiles[(int)bestMove.Item2.x, (int)bestMove.Item2.y].transform.position + new Vector3(0, 0, -0.1f), Quaternion.identity));
+        previousMoveTiles.Add(Instantiate(previousMovePrefabTile, toTile.transform.position + new Vector3(0, 0, -0.1f), Quaternion.identity));
 
         // Castling
-        if (Board.board.pieces[(int)bestMove.Item2.x, (int)bestMove.Item2.y].type == PieceData.Type.King && Board.board.pieces[(int)bestMove.Item2.x, (int)bestMove.Item2.y].hasCastled)
+        if (movedPiece.type == PieceData.Type.King)
         {
-            Board.board.pieces[(int)bestMove.Item2.x, (int)bestMove.Item2.y].hasCastled = false;
-            if (bestMove.Item2.x == 6)
+            (int, int) index = movedPiece.isWhite == 1 ? (0, 1) : (2, 3);
+            
+            if (toTile.position.x == 6 && copyCastling[index.Item1])
             {
-                Board.board.pieces[5, (int)bestMove.Item2.y].gameObject.transform.position = board.tiles[5, (int)bestMove.Item2.y].transform.position + new Vector3(0, 0, -1);
+                GameObject rookPiece = Board.board.pieces[5, (int)toTile.position.y].gameObject;
+                Vector3 rookTo = board.tiles[5, (int)toTile.position.y].transform.position + new Vector3(0, 0, -1);
+                StartCoroutine(board.MoveCoroutine(rookPiece, rookPiece.transform.position, rookTo, 0.25f));
             }
-            else if (bestMove.Item2.x == 2)
+            else if (toTile.position.x == 2 && copyCastling[index.Item2])
             {
-                Board.board.pieces[3, (int)bestMove.Item2.y].gameObject.transform.position = board.tiles[3, (int)bestMove.Item2.y].transform.position + new Vector3(0, 0, -1);
+                GameObject rookPiece = Board.board.pieces[3, (int)toTile.position.y].gameObject;
+                Vector3 rookTo = board.tiles[3, (int)toTile.position.y].transform.position + new Vector3(0, 0, -1);
+                StartCoroutine(board.MoveCoroutine(rookPiece, rookPiece.transform.position, rookTo, 0.25f));
             }
         }
+        
         WhiteTurn = -WhiteTurn;
         
         canCastle = !board.CheckChecks(Board.board, WhiteTurn);
