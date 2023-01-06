@@ -7,16 +7,18 @@ public class UI : MonoBehaviour
     [Header("Engine")]
     [SerializeField] TMP_Text evalScoreText;
     [SerializeField] TMP_Text nodesScoreText;
+    [SerializeField] TMP_Text depthText;
+    [SerializeField] TMP_Text moveText;
 
-    public void updateEngineText(int evalScore, int nodesScore)
+    public void updateEngineText(int evalScore, int nodesScore, string move)
     {
         if (evalScore == int.MaxValue)
         {
-            evalScoreText.text = "White Checkmate";
+            evalScoreText.text = "W Mate";
         }
         else if (evalScore == int.MinValue)
         {
-            evalScoreText.text = "Black Checkmate";
+            evalScoreText.text = "B Mate";
         }
         else
         {
@@ -24,5 +26,7 @@ public class UI : MonoBehaviour
         }
 
         nodesScoreText.text = nodesScore.ToString();
+
+        moveText.text = move;
     }
 }

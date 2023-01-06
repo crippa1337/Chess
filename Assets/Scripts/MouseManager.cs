@@ -148,7 +148,6 @@ public class MouseManager : MonoBehaviour
             else if (endState == Board.MateType.Checkmate && WhiteTurn == 1)
             {
                 newGameButton.SetActive(true);
-                timerDivider.SetActive(false);
                 winText.text = "Black Wins!";
                 canMove = false;
                 isCountingDown = false;
@@ -156,7 +155,6 @@ public class MouseManager : MonoBehaviour
             else if (endState == Board.MateType.Checkmate && WhiteTurn == -1)
             {
                 newGameButton.SetActive(true);
-                timerDivider.SetActive(false);
                 winText.text = "White Wins!";
                 canMove = false;
                 isCountingDown = false;
@@ -164,7 +162,6 @@ public class MouseManager : MonoBehaviour
             else if (endState == Board.MateType.Stalemate || Board.board.fiftyMoveCounter >= 50)
             {
                 newGameButton.SetActive(true);
-                timerDivider.SetActive(false);
                 winText.text = "Stalemate!";
                 canMove = false;
                 isCountingDown = false;
@@ -193,10 +190,12 @@ public class MouseManager : MonoBehaviour
         {
             (bestMove, evalScore, nodesScore) = engine.MinMove(Board.board, depth);
         });
-
+        
         // If time is up and the computer wants to move, return
         if (!canMove) return;
-        ui.updateEngineText(evalScore, nodesScore);
+
+        string move = board.VectorToMove(bestMove.Item1, bestMove.Item2);
+        ui.updateEngineText(evalScore, nodesScore, move);
         board.MovePiece(bestMove.Item1, bestMove.Item2, WhiteTurn, Board.board);
         
         //Board.pieces[(int)bestMove.Item2.x, (int)bestMove.Item2.y].gameObject.transform.position = board.tiles[(int)bestMove.Item2.x, (int)bestMove.Item2.y].transform.position + new Vector3(0, 0, -1);
@@ -235,7 +234,6 @@ public class MouseManager : MonoBehaviour
         else if (endState == Board.MateType.Checkmate && WhiteTurn == 1)
         {
             newGameButton.SetActive(true);
-            timerDivider.SetActive(false);
             winText.text = "Black Wins!";
             canMove = false;
             isCountingDown = false;
@@ -243,7 +241,6 @@ public class MouseManager : MonoBehaviour
         else if (endState == Board.MateType.Checkmate && WhiteTurn == -1)
         {
             newGameButton.SetActive(true);
-            timerDivider.SetActive(false);
             winText.text = "White Wins!";
             canMove = false;
             isCountingDown = false;
@@ -251,7 +248,6 @@ public class MouseManager : MonoBehaviour
         else if (endState == Board.MateType.Stalemate || Board.board.fiftyMoveCounter >= 50)
         {
             newGameButton.SetActive(true);
-            timerDivider.SetActive(false);
             winText.text = "Stalemate!";
             canMove = false;
             isCountingDown = false;
@@ -311,6 +307,8 @@ public class MouseManager : MonoBehaviour
         isCountingDown = false;
         canMove = true;
         winText.text = "";
+        ui.updateEngineText(0, 0, "");
+        board.InitStartingPositions();
     }
 
     void HandleTimers()

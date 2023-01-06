@@ -39,14 +39,12 @@ public class Board : MonoBehaviour
     [SerializeField] AudioClip moveSound;
     [SerializeField] MouseManager mm;
 
-
-    // Start is called before the first frame update
     void Start()
     {
         audioSource = GetComponent<AudioSource>();
         InitBoard();
-        board = InitStartingPositions();
-        // board = InitFENPosition("rnbqkbnr/pp1ppppp/8/2pP4/8/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2");
+        // InitStartingPositions();
+        InitFENPosition("4r3/1pp2rbk/6pn/4n3/P3BN1q/1PB2bPP/8/2Q1RRK1 b - - 0 31");
     }
     
     public bool MovePiece(Vector2 from, Vector2 to, int isWhite, BoardData board)
@@ -354,10 +352,20 @@ public class Board : MonoBehaviour
         }
     }
 
-    public BoardData InitStartingPositions()
+    public void InitStartingPositions()
     {
-        BoardData board = new BoardData(new PieceData[8, 8], new Vector2(4, 0), new Vector2(4, 7), new Vector2(-1, -1), 0);
+        if (board != null)
+        {
+            foreach (PieceData piece in board.pieces)
+            {
+                if (piece == null) continue;
+                Destroy(piece.gameObject);
+            }
+        }
         
+        board = new BoardData(new PieceData[8, 8], new Vector2(4, 0), new Vector2(4, 7), new Vector2(-1, -1), 0);
+        mm.WhiteTurn = 1;
+
         // Pawns
         for (int i = 0; i < 8; i++)
         {
@@ -401,13 +409,11 @@ public class Board : MonoBehaviour
                 piece.position = new Vector2(i, j);
             }
         }
-
-        return board;
     }
     
-    public BoardData InitFENPosition(string fen)
+    public void InitFENPosition(string fen)
     {
-        BoardData board = new BoardData(new PieceData[8, 8], Vector2.zero, Vector2.zero, new Vector2(-1, -1), 0);
+        board = new BoardData(new PieceData[8, 8], Vector2.zero, Vector2.zero, new Vector2(-1, -1), 0);
 
         // Split FEN string
         string[] fenSplit = fen.Split(' ');
@@ -425,7 +431,7 @@ public class Board : MonoBehaviour
 
                 if (Char.IsNumber(c))
                 {
-                    adder = int.Parse(c.ToString());
+                    adder += int.Parse(c.ToString());
                     adder -= 1;
                 } 
                 else
@@ -473,6 +479,7 @@ public class Board : MonoBehaviour
 
                     // Adder is for empty spaces in FEN notation, [7 - i] is due to FEN boards being flipped compared to mine
                     board.pieces[j + adder, 7 - i] = Instantiate(piece, tiles[j + adder, 7 - i].transform.position + new Vector3(0, 0, -1), Quaternion.identity).GetComponent<Piece>().pieceData;
+                    Debug.Log("Piece: " + piece + "at " + j + adder);
                 }
             }
         }
@@ -508,8 +515,6 @@ public class Board : MonoBehaviour
 
         // Fullmove
         // TODO
-
-        return board;
     }
 
     public bool CheckChecks(BoardData board, int caller)
@@ -620,5 +625,10 @@ public class Board : MonoBehaviour
         }
 
         piece.transform.position = end;
+    }
+
+    public string VectorToMove(Vector2 from, Vector2 to)
+    {
+        return $"{(char)('a' + from.x)}{(char)('1' + from.y)}-{(char)('a' + to.x)}{(char)('1' + to.y)}";
     }
 }
