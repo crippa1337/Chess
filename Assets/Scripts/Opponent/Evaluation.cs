@@ -4,34 +4,24 @@ using UnityEngine;
 
 public class Evaluation : MonoBehaviour
 {
-    int infinity = int.MaxValue;
-    int negInfinity = int.MinValue;
+    readonly int posInfinity = int.MaxValue;
+    readonly int negInfinity = int.MinValue;
 
     [SerializeField] Board board;
-    
 
-    public int Evaluate(PieceData[,] pieces)
+    public int Evaluate(BoardData oldBoard, int caller)
     {
         int whiteScore = 0;
         int blackScore = 0;
         // White is maximizer
         // Black is minimizer
 
-        Board.MateType whiteCheckmate = board.GenerateEndState(1);
-        Board.MateType blackCheckmate = board.GenerateEndState(-1);
-
-        // If white is checkmated, return min
-        if (whiteCheckmate == Board.MateType.Checkmate)
+        Board.MateType endState = board.GenerateEndState(oldBoard, caller);
+        if (endState == Board.MateType.Checkmate)
         {
-            return negInfinity;
+            return caller == 1 ? negInfinity : posInfinity;
         }
-        // If black is checkmated, return max
-        else if (blackCheckmate == Board.MateType.Checkmate)
-        {
-            return infinity;
-        }
-        // If anyone is stalemated, return 0
-        else if (whiteCheckmate == Board.MateType.Stalemate || blackCheckmate == Board.MateType.Stalemate)
+        else if (endState == Board.MateType.Stalemate)
         {
             return 0;
         }
@@ -40,9 +30,9 @@ public class Evaluation : MonoBehaviour
         {
             for (int j = 0; j < 8; j++)
             {
-                if (pieces[i, j] != null)
+                if (oldBoard.pieces[i, j] != null)
                 {
-                    PieceData piece = pieces[i, j];
+                    PieceData piece = oldBoard.pieces[i, j];
                     PieceData.Type type = piece.type;
 
                     int pieceValue = type switch
@@ -52,7 +42,6 @@ public class Evaluation : MonoBehaviour
                         PieceData.Type.Bishop => 330,
                         PieceData.Type.Rook => 500,
                         PieceData.Type.Queen => 900,
-                        PieceData.Type.King => 20000,
                         _ => 0
                     };
 
@@ -91,6 +80,6 @@ public class Evaluation : MonoBehaviour
             }
         }
 
-        return whiteScore - blackScore;
+        return (whiteScore - blackScore) * caller;
     }
 }

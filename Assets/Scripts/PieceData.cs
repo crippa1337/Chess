@@ -64,31 +64,30 @@ public class PieceData
 
     public PieceData DeepCopy()
     {
-        PieceData copy = new PieceData(isWhite, position, type, hasMoved, hasCastled);
-        return copy;
+        return new PieceData(isWhite, position, type, hasMoved, hasCastled);
     }
 
-    public List<Vector2> LegalMoves(PieceData[,] pieces)
+    public List<Vector2> LegalMoves(BoardData board)
     {
         switch (type) {
             case Type.Pawn:
-                return PawnMoves(pieces);
+                return PawnMoves(board);
             case Type.Knight:
-                return KnightMoves(pieces);
+                return KnightMoves(board);
             case Type.Bishop:
-                return DiagonalMoves(pieces);
+                return DiagonalMoves(board);
             case Type.Rook:
-                return StraightMoves(pieces);
+                return StraightMoves(board);
             case Type.Queen:
-                return QueenMoves(pieces);
+                return QueenMoves(board);
             case Type.King:
-                return KingMoves(pieces);
+                return KingMoves(board);
             default:
                 return new List<Vector2>();
         }
     }
-
-    public List<Vector2> StraightMoves(PieceData[,] pieces)
+    
+    public List<Vector2> StraightMoves(BoardData board)
     {
         List<Vector2> legalMoves = new();
         bool[] axes = { true, true, true, true };
@@ -123,7 +122,7 @@ public class PieceData
                     continue;
                 }
 
-                PieceData currentPiece = pieces[(int)newMove.x, (int)newMove.y];
+                PieceData currentPiece = board.pieces[(int)newMove.x, (int)newMove.y];
 
                 if (currentPiece == null)
                 {
@@ -150,7 +149,7 @@ public class PieceData
         return legalMoves;
     }
 
-    public List<Vector2> DiagonalMoves(PieceData[,] pieces)
+    public List<Vector2> DiagonalMoves(BoardData board)
     {
         List<Vector2> legalMoves = new();
         bool[] axes = { true, true, true, true };
@@ -193,7 +192,7 @@ public class PieceData
                     continue;
                 }
 
-                PieceData currentPiece = pieces[(int)newMove.x, (int)newMove.y];
+                PieceData currentPiece = board.pieces[(int)newMove.x, (int)newMove.y];
 
                 if (currentPiece == null)
                 {
@@ -220,7 +219,7 @@ public class PieceData
         return legalMoves;
     }
 
-    public List<Vector2> RemoveIllegalMoves(List<Vector2> potentialMoves, PieceData[,] pieces)
+    public List<Vector2> RemoveIllegalMoves(List<Vector2> potentialMoves, BoardData board)
     {
 
         List<Vector2> legalMoves = new();
@@ -232,7 +231,7 @@ public class PieceData
                 continue;
             }
 
-            if (pieces[(int)move.x, (int)move.y] != null && pieces[(int)move.x, (int)move.y].isWhite == isWhite)
+            if (board.pieces[(int)move.x, (int)move.y] != null && board.pieces[(int)move.x, (int)move.y].isWhite == isWhite)
             {
                 continue;
             }
@@ -243,7 +242,7 @@ public class PieceData
         return legalMoves;
     }
 
-    public List<Vector2> PawnMoves(PieceData[,] pieces)
+    public List<Vector2> PawnMoves(BoardData board)
     {
         List<Vector2> moveMoves = new();
         List<Vector2> attackMoves = new();
@@ -251,7 +250,7 @@ public class PieceData
 
         if (!hasMoved)
         {
-            if (pieces[(int)position.x, (int)position.y + (1 * isWhite)] == null)
+            if (board.pieces[(int)position.x, (int)position.y + (1 * isWhite)] == null)
             {
                 moveMoves.Add(new(position.x, position.y + (2 * isWhite)));
             }
@@ -265,7 +264,7 @@ public class PieceData
                 continue;
             }
 
-            if (pieces[(int)move.x, (int)move.y] == null)
+            if (board.pieces[(int)move.x, (int)move.y] == null)
             {
                 legalMoves.Add(move);
             }
@@ -281,17 +280,21 @@ public class PieceData
                 continue;
             }
 
-            if (pieces[(int)move.x, (int)move.y] != null && pieces[(int)move.x, (int)move.y].isWhite != isWhite)
+            if (board.pieces[(int)move.x, (int)move.y] != null && board.pieces[(int)move.x, (int)move.y].isWhite != isWhite)
             {
                 legalMoves.Add(move);
             }
         }
 
-        return legalMoves;
+        if (Mathf.Abs(position.x - board.enPassant.x) == 1 && Mathf.Abs(position.y - board.enPassant.y) == 1)
+        {
+            legalMoves.Add(board.enPassant);
+        }
 
+        return legalMoves;
     }
 
-    public List<Vector2> KnightMoves(PieceData[,] pieces)
+    public List<Vector2> KnightMoves(BoardData board)
     {
         List<Vector2> potentialMoves = new List<Vector2>();
 
@@ -305,20 +308,20 @@ public class PieceData
         potentialMoves.Add(new Vector2(position.x - 1, position.y + 2));
 
 
-        return RemoveIllegalMoves(potentialMoves, pieces);
+        return RemoveIllegalMoves(potentialMoves, board);
     }
 
-    public List<Vector2> QueenMoves(PieceData[,] pieces)
+    public List<Vector2> QueenMoves(BoardData board)
     {
         List<Vector2> legalMoves = new();
 
-        legalMoves.AddRange(StraightMoves(pieces));
-        legalMoves.AddRange(DiagonalMoves(pieces));
+        legalMoves.AddRange(StraightMoves(board));
+        legalMoves.AddRange(DiagonalMoves(board));
 
         return legalMoves;
     }
 
-    public List<Vector2> KingMoves(PieceData[,] pieces)
+    public List<Vector2> KingMoves(BoardData board)
     {
         List<Vector2> potentialMoves = new();
 
@@ -333,12 +336,12 @@ public class PieceData
 
         if (!hasMoved && MouseManager.canCastle)
         {
-            PieceData rook1 = pieces[(int)position.x + 3, (int)position.y];
-            PieceData rook2 = pieces[(int)position.x - 4, (int)position.y];
+            PieceData rook1 = board.pieces[(int)position.x + 3, (int)position.y];
+            PieceData rook2 = board.pieces[(int)position.x - 4, (int)position.y];
 
             if (rook1 != null) {
                 // If the king hasn't moved and the rook on the right hasn't moved, and there are no pieces between the king and the rook, add the move to the list of legal moves
-                if (rook1.type == Type.Rook && !rook1.hasMoved && pieces[(int)position.x + 1, (int)position.y] == null && pieces[(int)position.x + 2, (int)position.y] == null)
+                if (rook1.type == Type.Rook && !rook1.hasMoved && board.pieces[(int)position.x + 1, (int)position.y] == null && board.pieces[(int)position.x + 2, (int)position.y] == null)
                 {
                     potentialMoves.Add(new Vector2(position.x + 2, position.y));
                 }
@@ -346,13 +349,13 @@ public class PieceData
 
             if (rook2 != null) {
                 // If the king hasn't moved and the rook on the left hasn't moved, and there are no pieces between the king and the rook, add the move to the list of legal moves
-                if (rook2.type == Type.Rook && !rook2.hasMoved && pieces[(int)position.x - 1, (int)position.y] == null && pieces[(int)position.x - 2, (int)position.y] == null && pieces[(int)position.x - 3, (int)position.y] == null)
+                if (rook2.type == Type.Rook && !rook2.hasMoved && board.pieces[(int)position.x - 1, (int)position.y] == null && board.pieces[(int)position.x - 2, (int)position.y] == null && board.pieces[(int)position.x - 3, (int)position.y] == null)
                 {
                     potentialMoves.Add(new Vector2(position.x - 2, position.y));
                 }
             }
         }
 
-        return RemoveIllegalMoves(potentialMoves, pieces);
+        return RemoveIllegalMoves(potentialMoves, board);
     }
 }

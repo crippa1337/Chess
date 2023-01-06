@@ -3,8 +3,9 @@ using UnityEngine;
 
 public class Engine : MonoBehaviour
 {
-    readonly int infinity = int.MaxValue;
+    readonly int posInfinity = int.MaxValue;
     readonly int negInfinity = int.MinValue;
+    int nodesScore;
 
     [SerializeField] Board board;
     Evaluation evaluation;
@@ -14,112 +15,94 @@ public class Engine : MonoBehaviour
         evaluation = GetComponent<Evaluation>();
     }
 
-    public int MiniMax(PieceData[,] pieces, int depth, int alpha, int beta, bool isMaximizing)
+    public int Negamax(BoardData oldBoard, int depth, int alpha, int beta, int caller)
     {
+        nodesScore++;
         if (depth == 0)
         {
-            return evaluation.Evaluate(pieces);
+            return evaluation.Evaluate(oldBoard, caller);
         }
-
-        if (isMaximizing)
-        {
-            int maxEval = negInfinity;
-            List<(Vector2, List<Vector2>)> allMoves = MoveGenerator.GenerateAllMoves(pieces, 1);
-            foreach ((Vector2, List<Vector2>) pieceMoves in allMoves)
-            {
-                foreach (Vector2 move in pieceMoves.Item2)
-                {
-                    Vector2 from = pieceMoves.Item1;
-                    PieceData[,] testPieces = board.DeepCopy(pieces);
-                    if (board.TestMove(from, move, 1, testPieces))
-                    {
-                        int eval = MiniMax(testPieces, depth - 1, alpha, beta, false);
-                        maxEval = Mathf.Max(maxEval, eval);
-                        alpha = Mathf.Max(alpha, eval);
-                        if (beta <= alpha)
-                        {
-                            break;
-                        }
-                    }
-                }
-            }
-            return maxEval;
-        }
-        else
-        {
-            int minEval = infinity;
-            List<(Vector2, List<Vector2>)> allMoves = MoveGenerator.GenerateAllMoves(pieces, -1);
-            foreach ((Vector2, List<Vector2>) pieceMoves in allMoves)
-            {
-                foreach (Vector2 move in pieceMoves.Item2)
-                {
-                    Vector2 from = pieceMoves.Item1;
-                    PieceData[,] testPieces = board.DeepCopy(pieces);
-                    if (board.TestMove(from, move, -1, testPieces))
-                    {
-                        int eval = MiniMax(testPieces, depth - 1, alpha, beta, true);
-                        minEval = Mathf.Min(minEval, eval);
-                        beta = Mathf.Min(beta, eval);
-                        if (beta <= alpha)
-                        {
-                            break;
-                        }
-                    }
-                }
-            }
-            return minEval;
-        }
-    }
-
-    public (Vector2, Vector2) MaxMove(PieceData[,] pieces, int depth)
-    {
+        
         int maxEval = negInfinity;
-        (Vector2, Vector2) bestMove = (Vector2.zero, Vector2.zero);
-        List<(Vector2, List<Vector2>)> allMoves = MoveGenerator.GenerateAllMoves(pieces, 1);
-        foreach ((Vector2, List<Vector2>) pieceMoves in allMoves)
+        List<(Vector2, List<Vector2>)> allMoves = MoveGenerator.GenerateAllMoves(oldBoard, caller);
+        foreach (var (position, moves) in allMoves)
         {
-            foreach (Vector2 move in pieceMoves.Item2)
+            foreach (var move in moves)
             {
-                Vector2 from = pieceMoves.Item1;
-                PieceData[,] testPieces = board.DeepCopy(pieces);
-                if (board.TestMove(from, move, 1, testPieces))
+                // Make the move and call Negamax recursively
+                BoardData newBoard = oldBoard.DeepCopy();
+                if (board.SilentMove(position, move, caller, newBoard))
                 {
-                    int eval = MiniMax(testPieces, depth, negInfinity, infinity, false);
-                    if (eval > maxEval)
+                    int eval = -Negamax(newBoard, depth - 1, -beta, -alpha, -caller);
+                    maxEval = Mathf.Max(maxEval, eval);
+                    alpha = Mathf.Max(alpha, eval);
+                    if (alpha >= beta)
                     {
-                        maxEval = eval;
-                        bestMove = (from, move);
+                        break;
                     }
                 }
             }
         }
 
-        return bestMove;
+        return maxEval;
     }
 
-    public ((Vector2, Vector2), int) MinMove(PieceData[,] pieces, int depth)
+
+    public ((Vector2, Vector2), int, int) MinMove(BoardData oldBoard, int depth)
     {
-        int minEval = infinity;
+        nodesScore = 0;
+        int bestEval = posInfinity;
         (Vector2, Vector2) bestMove = (Vector2.zero, Vector2.zero);
-        List<(Vector2, List<Vector2>)> allMoves = MoveGenerator.GenerateAllMoves(pieces, -1);
-        foreach ((Vector2, List<Vector2>) pieceMoves in allMoves)
+        List<(Vector2, List<Vector2>)> allMoves = MoveGenerator.GenerateAllMoves(oldBoard, -1);
+        
+        // find the best move for the minimizer
+        foreach (var (position, moves) in allMoves)
         {
-            foreach (Vector2 move in pieceMoves.Item2)
+            foreach (var move in moves)
             {
-                Vector2 from = pieceMoves.Item1;
-                PieceData[,] testPieces = board.DeepCopy(pieces);
-                if (board.TestMove(from, move, -1, testPieces))
+                // Make the move and call Negamax recursively
+                BoardData newBoard = oldBoard.DeepCopy();
+                if (board.SilentMove(position, move, -1, newBoard))
                 {
-                    int eval = MiniMax(testPieces, depth, negInfinity, infinity, true);
-                    if (eval < minEval)
+                    int eval = Negamax(newBoard, depth, negInfinity, posInfinity, 1);
+                    if (eval < bestEval)
                     {
-                        minEval = eval;
-                        bestMove = (pieceMoves.Item1, move);
+                        bestEval = eval;
+                        bestMove = (position, move);
                     }
                 }
+
             }
+
         }
 
-        return (bestMove, minEval);
+        return (bestMove, bestEval, nodesScore);
     }
 }
+
+
+    //public (Vector2, Vector2) MaxMove(PieceData[,] pieces, int depth)
+    //{
+    //    int maxEval = negInfinity;
+    //    (Vector2, Vector2) bestMove = (Vector2.zero, Vector2.zero);
+    //    List<(Vector2, List<Vector2>)> allMoves = MoveGenerator.GenerateAllMoves(pieces, 1);
+    //    foreach ((Vector2, List<Vector2>) pieceMoves in allMoves)
+    //    {
+    //        foreach (Vector2 move in pieceMoves.Item2)
+    //        {
+    //            Vector2 from = pieceMoves.Item1;
+    //            PieceData[,] testPieces = board.DeepCopy(pieces);
+    //            if (board.TestMove(from, move, 1, testPieces))
+    //            {
+    //                int eval = MiniMax(testPieces, depth, negInfinity, infinity, false);
+    //                if (eval > maxEval)
+    //                {
+    //                    maxEval = eval;
+    //                    bestMove = (from, move);
+    //                }
+    //            }
+    //        }
+    //    }
+
+    //    return bestMove;
+    //}
