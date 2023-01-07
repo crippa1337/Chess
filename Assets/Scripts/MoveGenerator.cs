@@ -4,7 +4,9 @@ using UnityEngine;
 
 public class MoveGenerator : MonoBehaviour
 {
-    public static List<(Vector2, List<Vector2>)> GenerateAllMoves(BoardData board, int isWhite)
+    [SerializeField] Board gameBoard;
+
+    public List<(Vector2, List<Vector2>)> GenerateAllMoves(BoardData board)
     {
         List<(Vector2, List<Vector2>)> allMoves = new List<(Vector2, List<Vector2>)>();
         for (int i = 0; i < 8; i++)
@@ -12,7 +14,7 @@ public class MoveGenerator : MonoBehaviour
             for (int j = 0; j < 8; j++)
             {
                 PieceData piece = board.pieces[i, j];
-                if (piece != null && piece.isWhite == isWhite)
+                if (piece != null && piece.isWhite == board.sideToMove)
                 {
                     List<Vector2> moves = piece.LegalMoves(board);
                     
@@ -23,7 +25,26 @@ public class MoveGenerator : MonoBehaviour
                 }
             }
         }
-        
-        return allMoves;
+
+        List<(Vector2, List<Vector2>)> legalMoves = new List<(Vector2, List<Vector2>)>();
+        foreach (var (position, moves) in allMoves)
+        {
+            List<Vector2> newMoves = new List<Vector2>();
+            foreach (var move in moves)
+            {
+                BoardData newBoard = board.DeepCopy();
+                if (gameBoard.TestMove(position, move, newBoard))
+                {
+                    newMoves.Add(move);
+                }
+            }
+
+            if (newMoves.Count != 0)
+            {
+                legalMoves.Add((position, newMoves));
+            }
+        }
+
+        return legalMoves;
     }
 }

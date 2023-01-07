@@ -12,11 +12,11 @@ public class UI : MonoBehaviour
 
     public void updateEngineText(int evalScore, int nodesScore, string move)
     {
-        if (evalScore == int.MaxValue)
+        if (evalScore == -999999)
         {
             evalScoreText.text = "W Mate";
         }
-        else if (evalScore == int.MinValue)
+        else if (evalScore == 999999)
         {
             evalScoreText.text = "B Mate";
         }

@@ -1,7 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
-using UnityEditor;
 using UnityEngine;
 
 public class BoardData
@@ -13,8 +9,9 @@ public class BoardData
     // White Kingside, White Queenside, Black Kingside, Black Queenside
     public bool[] castling = new bool[4];
     public int fiftyMoveCounter;
+    public int sideToMove;
 
-    public BoardData(PieceData[,] pieces, Vector2 white_kingpos, Vector2 black_kingpos, Vector2 enPassant, bool[] castling, int fiftyMoveCounter)
+    public BoardData(PieceData[,] pieces, Vector2 white_kingpos, Vector2 black_kingpos, Vector2 enPassant, bool[] castling, int fiftyMoveCounter, int sideToMove)
     {
         this.pieces = pieces;
         this.white_kingpos = white_kingpos;
@@ -22,6 +19,7 @@ public class BoardData
         this.enPassant = enPassant;
         this.castling = castling;
         this.fiftyMoveCounter = fiftyMoveCounter;
+        this.sideToMove = sideToMove;
     }
 
     public BoardData DeepCopy()
@@ -46,7 +44,8 @@ public class BoardData
         Vector2 black_kingpos = this.black_kingpos;
         Vector2 enPassant = this.enPassant;
         int fiftyMoveCounter = this.fiftyMoveCounter;
+        int sideToMove = this.sideToMove;
 
-        return new BoardData(pieces, white_kingpos, black_kingpos, enPassant, castling, fiftyMoveCounter);
+        return new BoardData(pieces, white_kingpos, black_kingpos, enPassant, castling, fiftyMoveCounter, sideToMove);
     }
 }

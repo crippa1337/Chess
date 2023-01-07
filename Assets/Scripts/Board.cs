@@ -7,12 +7,14 @@ public class Board : MonoBehaviour
 {
     public GameObject[,] tiles = new GameObject[8, 8];
     public static BoardData board;
+    [SerializeField] MoveGenerator moveGenerator;
 
     [Header("Board")]
     float TileScale;
     [SerializeField] GameObject Tile;
     [SerializeField] Color FirstColor;
     [SerializeField] Color SecondColor;
+    [SerializeField] bool defaultStartingPos = false;
     [SerializeField] string fenStartingPos;
 
     [Space(20)]
@@ -39,20 +41,27 @@ public class Board : MonoBehaviour
     AudioSource audioSource;
     [SerializeField] AudioClip captureSound;
     [SerializeField] AudioClip moveSound;
-    [SerializeField] MouseManager mm;
+    [SerializeField] public AudioClip checkSound;
 
     void Start()
     {
         audioSource = GetComponent<AudioSource>();
         InitBoard();
-        // InitStartingPositions();
-        InitFENPosition();
+        if (defaultStartingPos)
+        {
+            fenStartingPos = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+            InitFENPosition();
+        }
+        else
+        {
+            InitFENPosition();
+        }
     }
     
-    public bool MovePiece(Vector2 from, Vector2 to, int isWhite, BoardData board)
+    public bool MovePiece(Vector2 from, Vector2 to, BoardData board)
     {
         BoardData testBoard = board.DeepCopy();
-        if (!TestMove2(from, to, isWhite, testBoard)) return false;
+        if (!TestMove(from, to, testBoard)) return false;
         
         PieceData fromPiece = board.pieces[(int)from.x, (int)from.y];
         board.fiftyMoveCounter++;
@@ -80,7 +89,7 @@ public class Board : MonoBehaviour
             // Update king positions
             if (fromPiece.type == PieceData.Type.King)
             {
-                if (isWhite == 1)
+                if (board.sideToMove == 1)
                 {
                     board.white_kingpos = to;
                 }
@@ -159,103 +168,18 @@ public class Board : MonoBehaviour
         board.pieces[(int)to.x, (int)to.y].position = to;
         // delete old pos piece
         board.pieces[(int)from.x, (int)from.y] = null;
-        
-        return true;
-    }
 
-    public bool SilentMove(Vector2 from, Vector2 to, int isWhite, BoardData testBoard)
-    {
-        BoardData copyBoard = testBoard.DeepCopy();
-        if (!TestMove2(from, to, isWhite, copyBoard)) return false;
-
-        PieceData fromPiece = testBoard.pieces[(int)from.x, (int)from.y];
-        if (fromPiece.type == PieceData.Type.King || fromPiece.type == PieceData.Type.Rook || fromPiece.type == PieceData.Type.Pawn)
-        {
-            if (fromPiece.type == PieceData.Type.Pawn)
-            {
-                if (to == testBoard.enPassant)
-                {
-                    // En Passant Capture
-                    testBoard.pieces[(int)to.x, (int)from.y] = null;
-                }
-            }
-
-            if (fromPiece.type == PieceData.Type.Rook)
-            {
-                (int, int) index = fromPiece.isWhite == 1 ? (0, 1) : (2, 3);
-                if (from.x == 7 && testBoard.castling[index.Item1]) testBoard.castling[index.Item1] = false; // King side
-                if (from.x == 0 && testBoard.castling[index.Item2]) testBoard.castling[index.Item2] = false; // Queen side
-            }
-
-            // Update king positions
-            if (fromPiece.type == PieceData.Type.King)
-            {
-                if (isWhite == 1)
-                {
-                    testBoard.white_kingpos = to;
-                }
-                else
-                {
-                    testBoard.black_kingpos = to;
-                }
-
-                // Update castling
-                (int, int) index = fromPiece.isWhite == 1 ? (0, 1) : (2, 3);
-                testBoard.castling[index.Item1] = false;
-                testBoard.castling[index.Item2] = false;
-
-                if (Math.Abs(from.x - to.x) == 2)
-                {
-                    // Castling
-                    if (to.x == 6)
-                    {
-                        // Kingside
-                        // Move Rook
-                        testBoard.pieces[5, (int)from.y] = testBoard.pieces[7, (int)from.y];
-                        testBoard.pieces[5, (int)from.y].position = new Vector2(5, from.y);
-                        testBoard.pieces[7, (int)from.y] = null;
-                    }
-                    else if (to.x == 2)
-                    {
-                        // Queenside
-                        // Move Rook
-                        testBoard.pieces[3, (int)from.y] = testBoard.pieces[0, (int)from.y];
-                        testBoard.pieces[3, (int)from.y].position = new Vector2(3, from.y);
-                        testBoard.pieces[0, (int)from.y] = null;
-                    }
-                }
-            }
-        }
-
-        // Extra pawn logic
-        testBoard.enPassant = new Vector2(-1, -1);
-        if (fromPiece.type == PieceData.Type.Pawn)
-        {
-            if (Math.Abs(from.y - to.y) == 2)
-            {
-                testBoard.enPassant = new Vector2(from.x, (from.y + to.y) / 2);
-            }
-
-            if (to.y == 0 || to.y == 7)
-            {
-                fromPiece.type = PieceData.Type.Queen;
-            }
-        }
-
-        // Move Piece
-        testBoard.pieces[(int)to.x, (int)to.y] = fromPiece;
-        testBoard.pieces[(int)to.x, (int)to.y].position = to;
-        testBoard.pieces[(int)from.x, (int)from.y] = null;
+        board.sideToMove = -board.sideToMove;
 
         return true;
     }
 
-    public bool TestMove2(Vector2 from, Vector2 to, int isWhite, BoardData testBoard)
+    public bool TestMove(Vector2 from, Vector2 to, BoardData testBoard)
     {
         PieceData fromPiece = testBoard.pieces[(int)from.x, (int)from.y];
 
         if (fromPiece == null) return false;
-        if (fromPiece.isWhite != isWhite) return false;
+        if (fromPiece.isWhite != testBoard.sideToMove) return false;
         if (!fromPiece.LegalMoves(testBoard).Contains(to)) return false;
 
         if (fromPiece.type == PieceData.Type.King || fromPiece.type == PieceData.Type.Rook || fromPiece.type == PieceData.Type.Pawn)
@@ -279,7 +203,7 @@ public class Board : MonoBehaviour
             // Update king positions
             if (fromPiece.type == PieceData.Type.King)
             {
-                if (isWhite == 1)
+                if (testBoard.sideToMove == 1)
                 {
                     testBoard.white_kingpos = to;
                 }
@@ -335,12 +259,14 @@ public class Board : MonoBehaviour
         testBoard.pieces[(int)to.x, (int)to.y] = fromPiece;
         testBoard.pieces[(int)to.x, (int)to.y].position = to;
         testBoard.pieces[(int)from.x, (int)from.y] = null;
-
-        if (CheckChecks(testBoard, isWhite))
+        
+        if (CheckChecks(testBoard))
         {
+            testBoard.sideToMove = -testBoard.sideToMove;
             return false;
         }
 
+        testBoard.sideToMove = -testBoard.sideToMove;
         return true;
     }
 
@@ -383,9 +309,8 @@ public class Board : MonoBehaviour
         }
 
         bool[] castling = new bool[4] { true, true, true, true };
-        board = new BoardData(new PieceData[8, 8], new Vector2(4, 0), new Vector2(4, 7), new Vector2(-1, -1), castling, 0);
-        mm.WhiteTurn = 1;
-
+        board = new BoardData(new PieceData[8, 8], new Vector2(4, 0), new Vector2(4, 7), new Vector2(-1, -1), castling, 0, 1);
+        
         // Pawns
         for (int i = 0; i < 8; i++)
         {
@@ -434,7 +359,7 @@ public class Board : MonoBehaviour
     public void InitFENPosition()
     {
         string fen = fenStartingPos;
-        board = new BoardData(new PieceData[8, 8], Vector2.zero, Vector2.zero, new Vector2(-1, -1), new bool[4] { false, false, false, false }, 0);
+        board = new BoardData(new PieceData[8, 8], Vector2.zero, Vector2.zero, new Vector2(-1, -1), new bool[4] { false, false, false, false }, 0, 0);
 
         // Split FEN string
         string[] fenSplit = fen.Split(' ');
@@ -526,7 +451,7 @@ public class Board : MonoBehaviour
         }
 
         // Turn
-        mm.WhiteTurn = fenSplit[1] == "w" ? 1 : -1;
+        board.sideToMove = fenSplit[1] == "w" ? 1 : -1;
 
         // Castling
         string castling = fenSplit[2];
@@ -549,11 +474,20 @@ public class Board : MonoBehaviour
 
         // Fullmove
         // TODO
+
+        List<(Vector2, List<Vector2>)> allMoves = moveGenerator.GenerateAllMoves(board);
+        foreach ((Vector2, List<Vector2>) move in allMoves)
+        {
+            foreach (Vector2 move2 in move.Item2)
+            {
+                Debug.Log("Piece at: " + move.Item1 + " has move: " + move2);
+            }
+        }
     }
 
-    public bool CheckChecks(BoardData board, int caller)
+    public bool CheckChecks(BoardData board)
     {
-        Vector2 kingPos = caller == 1 ? board.white_kingpos : board.black_kingpos;
+        Vector2 kingPos = board.sideToMove == 1 ? board.white_kingpos : board.black_kingpos;
 
         for (int i = 0; i < 8; i++)
         {
@@ -561,7 +495,7 @@ public class Board : MonoBehaviour
             {
                 PieceData piece = board.pieces[i, j];
                 if (piece == null) continue;
-                if (piece.isWhite == caller) continue;
+                if (piece.isWhite == board.sideToMove) continue;
                 
                 // Only checks moves for the opposite color of caller
                 if (piece.LegalMoves(board).Contains(kingPos)) return true;
@@ -578,9 +512,9 @@ public class Board : MonoBehaviour
         Stalemate
     }
 
-    public MateType GenerateEndState(BoardData board, int turn)
+    public MateType GenerateEndState(BoardData board)
     {
-        List<(Vector2, List<Vector2>)> piecesAndMoves = MoveGenerator.GenerateAllMoves(board, turn);
+        List<(Vector2, List<Vector2>)> piecesAndMoves = moveGenerator.GenerateAllMoves(board);
 
         foreach ((Vector2, List<Vector2>) piece in piecesAndMoves)
         {
@@ -588,12 +522,12 @@ public class Board : MonoBehaviour
             {
                 BoardData testBoard = board.DeepCopy();
                 // If any move is legal, it's not checkmate
-                if (TestMove2(piece.Item1, move, turn, testBoard)) return MateType.None;
+                if (TestMove(piece.Item1, move, testBoard)) return MateType.None;
             }
         }
 
         // If no moves are legal and is in check, return checkmate
-        if (CheckChecks(board, turn)) return MateType.Checkmate;
+        if (CheckChecks(board)) return MateType.Checkmate;
         // If not in check, return stalemate
         else return MateType.Stalemate;
     }

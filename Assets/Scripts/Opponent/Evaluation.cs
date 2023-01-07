@@ -4,9 +4,6 @@ using UnityEngine;
 
 public class Evaluation : MonoBehaviour
 {
-    readonly int posInfinity = int.MaxValue;
-    readonly int negInfinity = int.MinValue;
-
     [SerializeField] Board board;
 
     public int Evaluate(BoardData oldBoard, int caller)
@@ -15,16 +12,6 @@ public class Evaluation : MonoBehaviour
         int blackScore = 0;
         // White is maximizer
         // Black is minimizer
-
-        Board.MateType endState = board.GenerateEndState(oldBoard, caller);
-        if (endState == Board.MateType.Checkmate)
-        {
-            return caller == 1 ? negInfinity : posInfinity;
-        }
-        else if (endState == Board.MateType.Stalemate)
-        {
-            return 0;
-        }
 
         for (int i = 0; i < 8; i++)
         {

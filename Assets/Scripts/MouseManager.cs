@@ -8,29 +8,13 @@ public class MouseManager : MonoBehaviour
 {
     bool holding;
     bool canMove = true;
-    public int whiteTurn;
-    public int WhiteTurn 
-    {
-        get
-        {
-            return whiteTurn;
-        }
-        
-        set
-        {
-            whiteTurn = value;
-            if (value == -1)
-            {
-                ComputerMove();
-            }
-        }
-    }
+
     [SerializeField] Board board;
     [SerializeField] Evaluation evaluation;
     [SerializeField] UI ui;
+    AudioSource audioSource;
     PieceData heldPiece;
     GameObject hoveredTile;
-    public static bool canCastle = true;
 
     [Header("Highlights")]
     [SerializeField] GameObject highlightPrefabTile;
@@ -59,6 +43,8 @@ public class MouseManager : MonoBehaviour
     [SerializeField] Engine engine;
     [SerializeField] int depth;
 
+    bool isEngineThinking = false;
+
     void Start()
     {
         highlightTile = Instantiate(highlightPrefabTile, new Vector2(-1000, 5000), Quaternion.identity);
@@ -68,6 +54,8 @@ public class MouseManager : MonoBehaviour
         whiteTimer = startingTimeSeconds;
         DisplayTime(blackTimer - 1, blackTimerText);
         DisplayTime(whiteTimer - 1, whiteTimerText);
+        
+        audioSource = board.GetComponent<AudioSource>();
     }
 
     void Update()
@@ -81,6 +69,12 @@ public class MouseManager : MonoBehaviour
         if (isCountingDown)
         {
             HandleTimers();
+        }
+
+        if (Board.board.sideToMove == -1 && !isEngineThinking)
+        {
+            ComputerMove();
+            Debug.Log("Thinking....");
         }
             
         if (Input.GetMouseButtonDown(0))
@@ -118,10 +112,9 @@ public class MouseManager : MonoBehaviour
                     copyCastling[i] = Board.board.castling[i];
                 }
 
-                if (board.MovePiece(heldPiece.position, tile.position, WhiteTurn, Board.board))
+                if (board.MovePiece(heldPiece.position, tile.position, Board.board))
                 {
                     if (!isCountingDown) isCountingDown = true;
-                    WhiteTurn = -WhiteTurn;
                     heldPiece.gameObject.transform.position = tile.transform.position + new Vector3(0, 0, -1);
 
                     // Castling
@@ -151,18 +144,17 @@ public class MouseManager : MonoBehaviour
 
             ClearMoveHighlights();
             heldPiece = null;
-            canCastle = !board.CheckChecks(Board.board, WhiteTurn);
-            
-            Board.MateType endState = board.GenerateEndState(Board.board, WhiteTurn);
+
+            Board.MateType endState = board.GenerateEndState(Board.board);
             if (endState == Board.MateType.None) return;
-            else if (endState == Board.MateType.Checkmate && WhiteTurn == 1)
+            else if (endState == Board.MateType.Checkmate && Board.board.sideToMove == 1)
             {
                 newGameButton.SetActive(true);
                 winText.text = "Black Wins!";
                 canMove = false;
                 isCountingDown = false;
             }
-            else if (endState == Board.MateType.Checkmate && WhiteTurn == -1)
+            else if (endState == Board.MateType.Checkmate && Board.board.sideToMove == -1)
             {
                 newGameButton.SetActive(true);
                 winText.text = "White Wins!";
@@ -192,13 +184,14 @@ public class MouseManager : MonoBehaviour
 
     async void ComputerMove()
     {
+        isEngineThinking = true;
         (Vector2, Vector2) bestMove = (Vector2.zero, Vector2.zero);
         int evalScore = 0;
-        int nodesScore = 0;
+        engine.nodesScore = 0;
 
         await Task.Run(() =>
         {
-            (bestMove, evalScore, nodesScore) = engine.MinMove(Board.board, depth);
+            (evalScore, bestMove) = engine.Negamax(Board.board, depth, -999999, 999999);
         });
         
         // If time is up and the computer wants to move, return
@@ -211,8 +204,9 @@ public class MouseManager : MonoBehaviour
         }
 
         string move = board.VectorToMove(bestMove.Item1, bestMove.Item2);
-        ui.updateEngineText(evalScore, nodesScore, move);
-        board.MovePiece(bestMove.Item1, bestMove.Item2, WhiteTurn, Board.board);
+        ui.updateEngineText(evalScore, engine.nodesScore, move);
+        board.MovePiece(bestMove.Item1, bestMove.Item2, Board.board);
+        isEngineThinking = false;
         
         PieceData movedPiece = Board.board.pieces[(int)bestMove.Item2.x, (int)bestMove.Item2.y];
         Vector3 from = movedPiece.gameObject.transform.position;
@@ -245,20 +239,18 @@ public class MouseManager : MonoBehaviour
             }
         }
         
-        WhiteTurn = -WhiteTurn;
-        
-        canCastle = !board.CheckChecks(Board.board, WhiteTurn);
-        
-        Board.MateType endState = board.GenerateEndState(Board.board, whiteTurn);
+        if (board.CheckChecks(Board.board)) audioSource.PlayOneShot(board.checkSound);
+
+        Board.MateType endState = board.GenerateEndState(Board.board);
         if (endState == Board.MateType.None) return;
-        else if (endState == Board.MateType.Checkmate && WhiteTurn == 1)
+        else if (endState == Board.MateType.Checkmate && Board.board.sideToMove == 1)
         {
             newGameButton.SetActive(true);
             winText.text = "Black Wins!";
             canMove = false;
             isCountingDown = false;
         }
-        else if (endState == Board.MateType.Checkmate && WhiteTurn == -1)
+        else if (endState == Board.MateType.Checkmate && Board.board.sideToMove == -1)
         {
             newGameButton.SetActive(true);
             winText.text = "White Wins!";
@@ -283,7 +275,7 @@ public class MouseManager : MonoBehaviour
         foreach (Vector2 move in legalMoves)
         {
             BoardData testBoard = Board.board.DeepCopy();
-            if (!board.TestMove2(heldPiece.position, move, WhiteTurn, testBoard)) continue;
+            if (!board.TestMove(heldPiece.position, move, testBoard)) continue;
             
             if (Board.board.pieces[(int)move.x, (int)move.y] == null)
             {
@@ -319,7 +311,6 @@ public class MouseManager : MonoBehaviour
         previousMoveTiles.Clear();
         newGameButton.SetActive(false);
         timerDivider.SetActive(true);
-        WhiteTurn = 1;
         blackTimer = startingTimeSeconds;
         whiteTimer = startingTimeSeconds;
         DisplayTime(blackTimer - 1, blackTimerText);
@@ -333,7 +324,7 @@ public class MouseManager : MonoBehaviour
 
     void HandleTimers()
     {
-        if (whiteTurn == 1)
+        if (Board.board.sideToMove == 1)
         {
             if (whiteTimer > 0)
             {
