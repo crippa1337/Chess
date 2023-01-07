@@ -2283,7 +2283,7 @@ MonoBehaviour:
   Tile: {fileID: 2697499304904374981, guid: 6baa47cef1d9f7a4baea41ab5a9101fc, type: 3}
   FirstColor: {r: 0.94117653, g: 0.85098046, b: 0.70980394, a: 1}
   SecondColor: {r: 0.70980394, g: 0.53333336, b: 0.38823533, a: 1}
-  defaultStartingPos: 1
+  defaultStartingPos: 0
   fenStartingPos: r1bqk2r/1p2ppbp/2pp1np1/p1n5/4P3/N1KP1N1P/PPP2PPB/1R1Q1B1R b kq
     - 6 10
   WhiteKing: {fileID: 2328340875924504317, guid: 43daed44e1c8c924aa562617805a28fc, type: 3}

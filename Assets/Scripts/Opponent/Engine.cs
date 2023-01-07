@@ -5,7 +5,8 @@ public class Engine : MonoBehaviour
 {
     readonly int posInfinity = 999999;
     readonly int negInfinity = -999999;
-    public int nodesScore;
+    public int nodesVisited;
+    public int maxDepth;
 
     [SerializeField] Board board;
     [SerializeField] MoveGenerator moveGenerator;
@@ -18,15 +19,16 @@ public class Engine : MonoBehaviour
 
     public (int, (Vector2, Vector2)) Negamax(BoardData oldBoard, int depth, int alpha, int beta)
     {
-        nodesScore++;
-        int movesDone = 0;
+        nodesVisited++;
+        int ply = maxDepth - depth;
         (Vector2, Vector2) noMove = (new Vector2(-1, -1), new Vector2(-1, -1));
 
         if (depth == 0)
         {
             return (evaluation.Evaluate(oldBoard, oldBoard.sideToMove), noMove);
         }
-        
+
+        int movesDone = 0;
         int bigEval = negInfinity;
         (Vector2, Vector2) bestMove = (Vector2.zero, Vector2.zero);
         List<(Vector2, List<Vector2>)> allMoves = moveGenerator.GenerateAllMoves(oldBoard);
@@ -56,9 +58,10 @@ public class Engine : MonoBehaviour
 
         if (movesDone == 0)
         {
+            // Checkmate
             if (board.CheckChecks(oldBoard))
             {
-                return (negInfinity + (5 - depth), noMove);
+                return (negInfinity + ply, noMove);
             }
             // Stalemate
             else

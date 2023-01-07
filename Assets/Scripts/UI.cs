@@ -12,13 +12,18 @@ public class UI : MonoBehaviour
 
     public void updateEngineText(int evalScore, int nodesScore, string move)
     {
-        if (evalScore == -999999)
+        if (evalScore <= -900000)
         {
-            evalScoreText.text = "W Mate";
+            int mateIn = (-999999 + evalScore) / 2;
+            mateIn *= -1;
+            mateIn = mateIn == 0 ? 1 : mateIn;
+            evalScoreText.text = "WM" + mateIn;
         }
-        else if (evalScore == 999999)
+        else if (evalScore >= 900000)
         {
-            evalScoreText.text = "B Mate";
+            int mateIn = (999999 - evalScore) / 2;
+            mateIn = mateIn == 0 ? 1 : mateIn;
+            evalScoreText.text = "BM" + mateIn;
         }
         else
         {

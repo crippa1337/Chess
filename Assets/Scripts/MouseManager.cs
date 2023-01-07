@@ -41,7 +41,6 @@ public class MouseManager : MonoBehaviour
 
     [Header("Engine")]
     [SerializeField] Engine engine;
-    [SerializeField] int depth;
 
     bool isEngineThinking = false;
 
@@ -187,11 +186,11 @@ public class MouseManager : MonoBehaviour
         isEngineThinking = true;
         (Vector2, Vector2) bestMove = (Vector2.zero, Vector2.zero);
         int evalScore = 0;
-        engine.nodesScore = 0;
+        engine.nodesVisited = 0;
 
         await Task.Run(() =>
         {
-            (evalScore, bestMove) = engine.Negamax(Board.board, depth, -999999, 999999);
+            (evalScore, bestMove) = engine.Negamax(Board.board, engine.maxDepth, -999999, 999999);
         });
         
         // If time is up and the computer wants to move, return
@@ -204,7 +203,7 @@ public class MouseManager : MonoBehaviour
         }
 
         string move = board.VectorToMove(bestMove.Item1, bestMove.Item2);
-        ui.updateEngineText(evalScore, engine.nodesScore, move);
+        ui.updateEngineText(evalScore, engine.nodesVisited, move);
         board.MovePiece(bestMove.Item1, bestMove.Item2, Board.board);
         isEngineThinking = false;
         
