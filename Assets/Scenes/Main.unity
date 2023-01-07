@@ -302,7 +302,6 @@ MonoBehaviour:
   whiteTimerText: {fileID: 682082792}
   startingTimeSeconds: 900
   engine: {fileID: 822383089}
-  depth: 4
 --- !u!4 &384111478
 Transform:
   m_ObjectHideFlags: 0
@@ -1742,7 +1741,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 69f20b3934ae8ef468b8b9b7b8d5d185, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  nodesScore: 0
+  nodesVisited: 0
+  maxDepth: 4
   board: {fileID: 1989327677}
   moveGenerator: {fileID: 822383087}
 --- !u!4 &822383090
@@ -2283,9 +2283,8 @@ MonoBehaviour:
   Tile: {fileID: 2697499304904374981, guid: 6baa47cef1d9f7a4baea41ab5a9101fc, type: 3}
   FirstColor: {r: 0.94117653, g: 0.85098046, b: 0.70980394, a: 1}
   SecondColor: {r: 0.70980394, g: 0.53333336, b: 0.38823533, a: 1}
-  defaultStartingPos: 0
-  fenStartingPos: r1bqk2r/1p2ppbp/2pp1np1/p1n5/4P3/N1KP1N1P/PPP2PPB/1R1Q1B1R b kq
-    - 6 10
+  defaultStartingPos: 1
+  fenStartingPos: 4r3/1pp2rbk/6pn/4n3/P3BN1q/1PB2bPP/8/2Q1RRK1 b - - 0 31
   WhiteKing: {fileID: 2328340875924504317, guid: 43daed44e1c8c924aa562617805a28fc, type: 3}
   WhiteQueen: {fileID: 6824232845977294005, guid: 042e0687e156b89478070c047a7a08ed, type: 3}
   WhiteRook: {fileID: 4616576864477518771, guid: 222b9545354ca734bb0d5831db76bc9f, type: 3}
