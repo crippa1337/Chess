@@ -34,7 +34,6 @@ public class MouseManager : MonoBehaviour
     [SerializeField] GameObject timerDivider;
     [SerializeField] TMP_Text blackTimerText;
     [SerializeField] TMP_Text whiteTimerText;
-    [SerializeField] float startingTimeSeconds;
     bool isCountingDown = false;
     float blackTimer;
     float whiteTimer;
@@ -49,8 +48,8 @@ public class MouseManager : MonoBehaviour
         highlightTile = Instantiate(highlightPrefabTile, new Vector2(-1000, 5000), Quaternion.identity);
         newGameButton.SetActive(false);
 
-        blackTimer = startingTimeSeconds;
-        whiteTimer = startingTimeSeconds;
+        blackTimer = GameManager.startSeconds;
+        whiteTimer = GameManager.startSeconds;
         DisplayTime(blackTimer - 1, blackTimerText);
         DisplayTime(whiteTimer - 1, whiteTimerText);
         
@@ -310,8 +309,8 @@ public class MouseManager : MonoBehaviour
         previousMoveTiles.Clear();
         newGameButton.SetActive(false);
         timerDivider.SetActive(true);
-        blackTimer = startingTimeSeconds;
-        whiteTimer = startingTimeSeconds;
+        blackTimer = GameManager.startSeconds;
+        whiteTimer = GameManager.startSeconds;
         DisplayTime(blackTimer - 1, blackTimerText);
         DisplayTime(whiteTimer - 1, whiteTimerText);
         isCountingDown = false;

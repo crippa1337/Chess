@@ -474,15 +474,6 @@ public class Board : MonoBehaviour
 
         // Fullmove
         // TODO
-
-        List<(Vector2, List<Vector2>)> allMoves = moveGenerator.GenerateAllMoves(board);
-        foreach ((Vector2, List<Vector2>) move in allMoves)
-        {
-            foreach (Vector2 move2 in move.Item2)
-            {
-                Debug.Log("Piece at: " + move.Item1 + " has move: " + move2);
-            }
-        }
     }
 
     public bool CheckChecks(BoardData board)

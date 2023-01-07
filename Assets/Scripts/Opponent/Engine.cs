@@ -3,10 +3,9 @@ using UnityEngine;
 
 public class Engine : MonoBehaviour
 {
-    readonly int posInfinity = 999999;
-    readonly int negInfinity = -999999;
     public int nodesVisited;
     public int maxDepth;
+    (Vector2, Vector2) noMove = (new Vector2(-1, -1), new Vector2(-1, -1));
 
     [SerializeField] Board board;
     [SerializeField] MoveGenerator moveGenerator;
@@ -21,15 +20,14 @@ public class Engine : MonoBehaviour
     {
         nodesVisited++;
         int ply = maxDepth - depth;
-        (Vector2, Vector2) noMove = (new Vector2(-1, -1), new Vector2(-1, -1));
-
+        
         if (depth == 0)
         {
             return (evaluation.Evaluate(oldBoard, oldBoard.sideToMove), noMove);
         }
 
         int movesDone = 0;
-        int bigEval = negInfinity;
+        int bigEval = Helper.negInfinity;
         (Vector2, Vector2) bestMove = (Vector2.zero, Vector2.zero);
         List<(Vector2, List<Vector2>)> allMoves = moveGenerator.GenerateAllMoves(oldBoard);
         foreach (var (position, moves) in allMoves)
@@ -55,13 +53,13 @@ public class Engine : MonoBehaviour
             }
         }
         outer:
-
+        
         if (movesDone == 0)
         {
             // Checkmate
             if (board.CheckChecks(oldBoard))
             {
-                return (negInfinity + ply, noMove);
+                return (Helper.negInfinity + ply, noMove);
             }
             // Stalemate
             else
