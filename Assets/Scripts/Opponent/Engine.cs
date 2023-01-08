@@ -7,7 +7,7 @@ public class Engine : MonoBehaviour
     public int maxDepth;
     (Vector2, Vector2) noMove = (new Vector2(-1, -1), new Vector2(-1, -1));
 
-    [SerializeField] Board board;
+    [SerializeField] Board gameBoard;
     [SerializeField] MoveGenerator moveGenerator;
     Evaluation evaluation;
 
@@ -23,6 +23,7 @@ public class Engine : MonoBehaviour
         
         if (depth == 0)
         {
+            // return (QSearch(oldBoard, alpha, beta), noMove);
             return (evaluation.Evaluate(oldBoard, oldBoard.sideToMove), noMove);
         }
 
@@ -36,7 +37,7 @@ public class Engine : MonoBehaviour
             {
                 // Make the move and call Negamax recursively
                 BoardData newBoard = oldBoard.DeepCopy();
-                board.TestMove(position, move, newBoard);
+                gameBoard.TestMove(position, move, newBoard);
                 movesDone++;
                 int eval = -Negamax(newBoard, depth - 1, -beta, -alpha).Item1;
                 if (eval > bigEval)
@@ -57,9 +58,9 @@ public class Engine : MonoBehaviour
         if (movesDone == 0)
         {
             // Checkmate
-            if (board.CheckChecks(oldBoard))
+            if (gameBoard.CheckChecks(oldBoard))
             {
-                return (Helper.negInfinity + ply, noMove);
+                return (Helper.matedIn(ply), noMove);
             }
             // Stalemate
             else
@@ -69,5 +70,50 @@ public class Engine : MonoBehaviour
         }
 
         return (bigEval, bestMove);
+    }
+
+    int QSearch(BoardData board, int alpha, int beta)
+    {
+        nodesVisited++;
+        
+        int bigEval = evaluation.Evaluate(board, board.sideToMove);
+        if (bigEval >= beta)
+        {
+            return beta;
+        }
+        if (alpha < bigEval)
+        {
+            alpha = bigEval;
+        }
+
+        List<(Vector2, List<Vector2>)> allMoves = moveGenerator.GenerateAllCaptures(board);
+        foreach (var (position, moves) in allMoves)
+        {
+            foreach (var move in moves)
+            {
+                // Make the move and call Negamax recursively
+                BoardData newBoard = board.DeepCopy();
+                gameBoard.TestMove(position, move, newBoard);
+                int score = -QSearch(newBoard, -beta, -alpha);
+                
+                if (score > bigEval)
+                {
+                    bigEval = score;
+
+                    if (score > alpha)
+                    {
+                        alpha = score;
+
+                        if (score >= beta)
+                        {
+                            goto outer;
+                        }
+                    }
+                }
+            }
+        }
+        outer:
+
+        return bigEval;
     }
 }

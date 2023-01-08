@@ -189,7 +189,7 @@ public class MouseManager : MonoBehaviour
 
         await Task.Run(() =>
         {
-            (evalScore, bestMove) = engine.Negamax(Board.board, engine.maxDepth, -999999, 999999);
+            (evalScore, bestMove) = engine.Negamax(Board.board, engine.maxDepth, Helper.negInfinity, Helper.infinity);
         });
         
         // If time is up and the computer wants to move, return
