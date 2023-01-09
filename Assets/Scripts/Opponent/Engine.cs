@@ -20,8 +20,8 @@ public class Engine : MonoBehaviour
 
         if (depth == 0)
         {
-            //return (QSearch(oldBoard, alpha, beta), Helper.noneMove);
-            return (evaluation.Evaluate(oldBoard, oldBoard.sideToMove), Helper.noneMove);
+            return (QSearch(oldBoard, alpha, beta), Helper.noneMove);
+            //return (evaluation.Evaluate(oldBoard, oldBoard.sideToMove), Helper.noneMove);
         }
 
         int ply = maxDepth - depth;
@@ -83,6 +83,9 @@ public class Engine : MonoBehaviour
         }
 
         List<Move> allMoves = moveGenerator.GenerateLegalCaptures(board);
+        // Sort moves with MVV-LVA
+        allMoves.Sort((x, y) => Sorting.MVVLVA(board, x).CompareTo(Sorting.MVVLVA(board, y)));
+        allMoves.Reverse();
 
         for (int i = 0; i < allMoves.Count; i++)
         {
