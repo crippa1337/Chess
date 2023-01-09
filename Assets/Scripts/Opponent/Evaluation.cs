@@ -22,16 +22,6 @@ public class Evaluation : MonoBehaviour
                     PieceData piece = oldBoard.pieces[i, j];
                     PieceData.Type type = piece.type;
 
-                    int pieceValue = type switch
-                    {
-                        PieceData.Type.Pawn => 100,
-                        PieceData.Type.Knight => 320,
-                        PieceData.Type.Bishop => 330,
-                        PieceData.Type.Rook => 500,
-                        PieceData.Type.Queen => 900,
-                        _ => 0
-                    };
-
                     int piecePosValue;
                     if (piece.isWhite == -1)
                     {
@@ -45,7 +35,7 @@ public class Evaluation : MonoBehaviour
                             PieceData.Type.King => PieceSquareTables.kings[j, i],
                             _ => 0
                         };
-                        blackScore += pieceValue + piecePosValue;
+                        blackScore += piece.value + piecePosValue;
                     }
                     
                     else if (piece.isWhite == 1)
@@ -61,7 +51,7 @@ public class Evaluation : MonoBehaviour
                             _ => 0
                         };
 
-                        whiteScore += pieceValue + piecePosValue;
+                        whiteScore += piece.value + piecePosValue;
                     }
                 }
             }

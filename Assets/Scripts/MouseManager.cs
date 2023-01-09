@@ -110,7 +110,7 @@ public class MouseManager : MonoBehaviour
                     copyCastling[i] = Board.board.castling[i];
                 }
 
-                if (board.MovePiece(heldPiece.position, tile.position, Board.board))
+                if (board.MovePiece(new Move(heldPiece.position, tile.position), Board.board))
                 {
                     if (!isCountingDown) isCountingDown = true;
                     heldPiece.gameObject.transform.position = tile.transform.position + new Vector3(0, 0, -1);
@@ -183,7 +183,7 @@ public class MouseManager : MonoBehaviour
     async void ComputerMove()
     {
         isEngineThinking = true;
-        (Vector2, Vector2) bestMove = (Vector2.zero, Vector2.zero);
+        Move bestMove = Helper.noneMove;
         int evalScore = 0;
         engine.nodesVisited = 0;
 
@@ -200,22 +200,22 @@ public class MouseManager : MonoBehaviour
         {
             copyCastling[i] = Board.board.castling[i];
         }
-
-        string move = board.VectorToMove(bestMove.Item1, bestMove.Item2);
+        
+        string move = board.VectorToMove(bestMove.from, bestMove.to);
         ui.updateEngineText(evalScore, engine.nodesVisited, move);
-        board.MovePiece(bestMove.Item1, bestMove.Item2, Board.board);
+        board.MovePiece(bestMove, Board.board);
         isEngineThinking = false;
         
-        PieceData movedPiece = Board.board.pieces[(int)bestMove.Item2.x, (int)bestMove.Item2.y];
+        PieceData movedPiece = Board.board.pieces[(int)bestMove.to.x, (int)bestMove.to.y];
         Vector3 from = movedPiece.gameObject.transform.position;
-        Tile toTile = board.tiles[(int)bestMove.Item2.x, (int)bestMove.Item2.y].GetComponent<Tile>();
+        Tile toTile = board.tiles[(int)bestMove.to.x, (int)bestMove.to.y].GetComponent<Tile>();
         StartCoroutine(board.MoveCoroutine(movedPiece.gameObject, from, toTile.transform.position + new Vector3(0, 0, -1), 0.15f));
 
         // Deletes previous move tiles
         if (previousMoveTiles.Count > 0) foreach (GameObject t in previousMoveTiles) Destroy(t);
         previousMoveTiles.Clear();
         // Create previous move prefab at computer from and to positions
-        previousMoveTiles.Add(Instantiate(previousMovePrefabTile, board.tiles[(int)bestMove.Item1.x, (int)bestMove.Item1.y].transform.position + new Vector3(0, 0, -0.1f), Quaternion.identity));
+        previousMoveTiles.Add(Instantiate(previousMovePrefabTile, board.tiles[(int)bestMove.from.x, (int)bestMove.from.y].transform.position + new Vector3(0, 0, -0.1f), Quaternion.identity));
         previousMoveTiles.Add(Instantiate(previousMovePrefabTile, toTile.transform.position + new Vector3(0, 0, -0.1f), Quaternion.identity));
 
         // Castling
@@ -270,19 +270,20 @@ public class MouseManager : MonoBehaviour
 
         List<Vector2> legalMoves = heldPiece.LegalMoves(Board.board);
         
-        foreach (Vector2 move in legalMoves)
+        foreach (Vector2 target in legalMoves)
         {
+            Move move = new Move(heldPiece.position, target);
             BoardData testBoard = Board.board.DeepCopy();
-            if (!board.TestMove(heldPiece.position, move, testBoard)) continue;
+            if (!board.TestMove(move, testBoard)) continue;
             
-            if (Board.board.pieces[(int)move.x, (int)move.y] == null)
+            if (Board.board.pieces[(int)target.x, (int)target.y] == null)
             {
-                GameObject moveHighlight = Instantiate(MoveHighlightPrefabPiece, board.tiles[(int)move.x, (int)move.y].transform.position + new Vector3(0, 0, -1), Quaternion.identity);
+                GameObject moveHighlight = Instantiate(MoveHighlightPrefabPiece, board.tiles[(int)target.x, (int)target.y].transform.position + new Vector3(0, 0, -1), Quaternion.identity);
                 MoveHighlightPieces.Add(moveHighlight);
             }
             else
             {
-                GameObject attackHighlight = Instantiate(AttackHighlightPrefabPiece, board.tiles[(int)move.x, (int)move.y].transform.position + new Vector3(0, 0, -1), Quaternion.identity);
+                GameObject attackHighlight = Instantiate(AttackHighlightPrefabPiece, board.tiles[(int)target.x, (int)target.y].transform.position + new Vector3(0, 0, -1), Quaternion.identity);
                 AttackHighlightPieces.Add(attackHighlight);
             }
         }

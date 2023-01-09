@@ -9,6 +9,7 @@ public class PieceData
     public Vector2 position;
     public Type type;
     public GameObject gameObject;
+    public int value;
 
     public enum Type
     { 
@@ -26,6 +27,7 @@ public class PieceData
         this.isWhite = isWhite;
         this.position = position;
         this.type = type;
+        value = GetValue(type);
     }
 
     public PieceData(GameObject gameObject, int isWhite, Vector2 position, Type type)
@@ -34,6 +36,28 @@ public class PieceData
         this.isWhite = isWhite;
         this.position = position;
         this.type = type;
+        value = GetValue(type);
+    }
+
+    public int GetValue(PieceData.Type type)
+    {
+        switch (type)
+        {
+            case Type.Pawn:
+                return 100;
+            case Type.Knight:
+                return 300;
+            case Type.Bishop:
+                return 300;
+            case Type.Rook:
+                return 500;
+            case Type.Queen:
+                return 900;
+            case Type.King:
+                return 10000;
+            default:
+                return 0;
+        }
     }
 
     public PieceData DeepCopy()

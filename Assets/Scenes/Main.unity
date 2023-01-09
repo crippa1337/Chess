@@ -1742,7 +1742,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   nodesVisited: 0
   maxDepth: 4
-  board: {fileID: 1989327677}
+  gameBoard: {fileID: 1989327677}
   moveGenerator: {fileID: 822383087}
 --- !u!4 &822383090
 Transform:
@@ -2328,7 +2328,7 @@ MonoBehaviour:
   FirstColor: {r: 0.94117653, g: 0.85098046, b: 0.70980394, a: 1}
   SecondColor: {r: 0.70980394, g: 0.53333336, b: 0.38823533, a: 1}
   defaultStartingPos: 1
-  fenStartingPos: 4r3/1pp2rbk/6pn/4n3/P3BN1q/1PB2bPP/8/2Q1RRK1 b - - 0 31
+  fenStartingPos: 5q2/6k1/2p1bb1p/2n2B1Q/1N2pP2/1r2P3/1P5P/2B2KNR w - - 2 32
   WhiteKing: {fileID: 2328340875924504317, guid: 43daed44e1c8c924aa562617805a28fc, type: 3}
   WhiteQueen: {fileID: 6824232845977294005, guid: 042e0687e156b89478070c047a7a08ed, type: 3}
   WhiteRook: {fileID: 4616576864477518771, guid: 222b9545354ca734bb0d5831db76bc9f, type: 3}

@@ -5,11 +5,11 @@ using UnityEngine;
 public class MoveGenerator : MonoBehaviour
 {
     [SerializeField] Board gameBoard;
-
+    
     // Legal Moves
-    public List<(Vector2, List<Vector2>)> GenerateAllMoves(BoardData board)
+    public List<Move> GenerateLegalMoves(BoardData board)
     {
-        List<(Vector2, List<Vector2>)> allMoves = new List<(Vector2, List<Vector2>)>();
+        List<Move> allMoves = new();
         for (int i = 0; i < 8; i++)
         {
             for (int j = 0; j < 8; j++)
@@ -21,28 +21,22 @@ public class MoveGenerator : MonoBehaviour
                     
                     if (moves.Count != 0)
                     {
-                        allMoves.Add((piece.position, moves));
+                        for (int k = 0; k < moves.Count; k++)
+                        {
+                            allMoves.Add(new Move(piece.position, moves[k]));
+                        }
                     }
                 }
             }
         }
 
-        List<(Vector2, List<Vector2>)> legalMoves = new List<(Vector2, List<Vector2>)>();
-        foreach (var (position, moves) in allMoves)
+        List<Move> legalMoves = new();
+        for (int i = 0; i < allMoves.Count; i++)
         {
-            List<Vector2> newMoves = new List<Vector2>();
-            foreach (var move in moves)
+            BoardData newBoard = board.DeepCopy();
+            if (gameBoard.TestMove(allMoves[i], newBoard))
             {
-                BoardData newBoard = board.DeepCopy();
-                if (gameBoard.TestMove(position, move, newBoard))
-                {
-                    newMoves.Add(move);
-                }
-            }
-
-            if (newMoves.Count != 0)
-            {
-                legalMoves.Add((position, newMoves));
+                legalMoves.Add(allMoves[i]);
             }
         }
 
@@ -50,9 +44,9 @@ public class MoveGenerator : MonoBehaviour
     }
 
     // Legal captures
-    public List<(Vector2, List<Vector2>)> GenerateAllCaptures(BoardData board)
+    public List<Move> GenerateLegalCaptures(BoardData board)
     {
-        List<(Vector2, List<Vector2>)> allMoves = new List<(Vector2, List<Vector2>)>();
+        List<Move> allMoves = new();
         for (int i = 0; i < 8; i++)
         {
             for (int j = 0; j < 8; j++)
@@ -64,49 +58,28 @@ public class MoveGenerator : MonoBehaviour
 
                     if (moves.Count != 0)
                     {
-                        allMoves.Add((piece.position, moves));
+                        for (int k = 0; k < moves.Count; k++)
+                        {
+                            allMoves.Add(new Move(piece.position, moves[k]));
+                        }
                     }
                 }
             }
         }
 
-        List<(Vector2, List<Vector2>)> captureMoves = new List<(Vector2, List<Vector2>)>();
-        foreach (var (position, moves) in allMoves)
+        List<Move> captureMoves = new();
+        for (int i = 0; i < allMoves.Count; i++)
         {
-            List<Vector2> currentCaptures = new List<Vector2>();
-            foreach (var move in moves)
+            BoardData newBoard = board.DeepCopy();
+            if (newBoard.pieces[(int)allMoves[i].to.x, (int)allMoves[i].to.y] != null)
             {
-                if (board.pieces[(int)move.x, (int)move.y] != null)
+                if (gameBoard.TestMove(allMoves[i], newBoard))
                 {
-                    currentCaptures.Add(move);
+                    captureMoves.Add(allMoves[i]);
                 }
-            }
-
-            if (currentCaptures.Count != 0)
-            {
-                captureMoves.Add((position, currentCaptures));
             }
         }
 
-        List<(Vector2, List<Vector2>)> legalMoves = new List<(Vector2, List<Vector2>)>();
-        foreach (var (position, moves) in captureMoves)
-        {
-            List<Vector2> newMoves = new List<Vector2>();
-            foreach (var move in moves)
-            {
-                BoardData newBoard = board.DeepCopy();
-                if (gameBoard.TestMove(position, move, newBoard))
-                {
-                    newMoves.Add(move);
-                }
-            }
-
-            if (newMoves.Count != 0)
-            {
-                legalMoves.Add((position, newMoves));
-            }
-        }
-
-        return legalMoves;
+        return captureMoves;
     }
 }

@@ -22,7 +22,7 @@ public class UI : MonoBehaviour
                 evalScoreText.fontSize = 50;
                 evalScoreText.text = "1-0";
             } else {
-                evalScoreText.text = "White mates in " + mateIn + " ply";
+                evalScoreText.text = "M" + mateIn;
             }
         }
         else if (evalScore >= 900000)

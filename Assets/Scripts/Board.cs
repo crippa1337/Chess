@@ -42,7 +42,7 @@ public class Board : MonoBehaviour
     [SerializeField] AudioClip captureSound;
     [SerializeField] AudioClip moveSound;
     [SerializeField] public AudioClip checkSound;
-
+    
     void Start()
     {
         audioSource = GetComponent<AudioSource>();
@@ -56,34 +56,37 @@ public class Board : MonoBehaviour
         {
             InitFENPosition();
         }
+
+        Zobrist zobrist = new Zobrist();
+        zobrist.Hash(board);
     }
-    
-    public bool MovePiece(Vector2 from, Vector2 to, BoardData board)
+
+    public bool MovePiece(Move move, BoardData board)
     {
         BoardData testBoard = board.DeepCopy();
-        if (!TestMove(from, to, testBoard)) return false;
+        if (!TestMove(move, testBoard)) return false;
         
-        PieceData fromPiece = board.pieces[(int)from.x, (int)from.y];
+        PieceData fromPiece = board.pieces[(int)move.from.x, (int)move.from.y];
         board.fiftyMoveCounter++;
 
         if (fromPiece.type == PieceData.Type.King || fromPiece.type == PieceData.Type.Rook || fromPiece.type == PieceData.Type.Pawn)
         {
             if (fromPiece.type == PieceData.Type.Pawn)
             {
-                if (to == board.enPassant)
+                if (move.to == board.enPassant)
                 {
                     // En Passant Capture
-                    StartCoroutine(TakeCoroutine(board.pieces[(int)to.x, (int)from.y].gameObject));
+                    StartCoroutine(TakeCoroutine(board.pieces[(int)move.to.x, (int)move.from.y].gameObject));
                     audioSource.PlayOneShot(captureSound);
-                    board.pieces[(int)to.x, (int)from.y] = null;
+                    board.pieces[(int)move.to.x, (int)move.from.y] = null;
                 }
             }
 
             if (fromPiece.type == PieceData.Type.Rook)
             {
                 (int, int) index = fromPiece.isWhite == 1 ? (0, 1) : (2, 3);
-                if (from.x == 7 && board.castling[index.Item1]) board.castling[index.Item1] = false; // King side
-                if (from.x == 0 && board.castling[index.Item2]) board.castling[index.Item2] = false; // Queen side
+                if (move.from.x == 7 && board.castling[index.Item1]) board.castling[index.Item1] = false; // King side
+                if (move.from.x == 0 && board.castling[index.Item2]) board.castling[index.Item2] = false; // Queen side
             }
             
             // Update king positions
@@ -91,11 +94,11 @@ public class Board : MonoBehaviour
             {
                 if (board.sideToMove == 1)
                 {
-                    board.white_kingpos = to;
+                    board.white_kingpos = move.to;
                 }
                 else
                 {
-                    board.black_kingpos = to;
+                    board.black_kingpos = move.to;
                 }
 
                 // Update castling
@@ -103,24 +106,24 @@ public class Board : MonoBehaviour
                 board.castling[index.Item1] = false;
                 board.castling[index.Item2] = false;
 
-                if (Math.Abs(from.x - to.x) == 2)
+                if (Math.Abs(move.from.x - move.to.x) == 2)
                 {
                     // Castling
-                    if (to.x == 6)
+                    if (move.to.x == 6)
                     {
                         // Kingside
                         // Move Rook
-                        board.pieces[5, (int)from.y] = board.pieces[7, (int)from.y];
-                        board.pieces[5, (int)from.y].position = new Vector2(5, from.y);
-                        board.pieces[7, (int)from.y] = null;
+                        board.pieces[5, (int)move.from.y] = board.pieces[7, (int)move.from.y];
+                        board.pieces[5, (int)move.from.y].position = new Vector2(5, move.from.y);
+                        board.pieces[7, (int)move.from.y] = null;
                     }
-                    else if (to.x == 2)
+                    else if (move.to.x == 2)
                     {
                         // Queenside
                         // Move Rook
-                        board.pieces[3, (int)from.y] = board.pieces[0, (int)from.y];
-                        board.pieces[3, (int)from.y].position = new Vector2(3, from.y);
-                        board.pieces[0, (int)from.y] = null;
+                        board.pieces[3, (int)move.from.y] = board.pieces[0, (int)move.from.y];
+                        board.pieces[3, (int)move.from.y].position = new Vector2(3, move.from.y);
+                        board.pieces[0, (int)move.from.y] = null;
                     }
                 }
             }
@@ -132,28 +135,28 @@ public class Board : MonoBehaviour
         {
             board.fiftyMoveCounter = 0;
 
-            if (Math.Abs(from.y - to.y) == 2)
+            if (Math.Abs(move.from.y - move.to.y) == 2)
             {
-                board.enPassant = new Vector2(from.x, (from.y + to.y) / 2);
+                board.enPassant = new Vector2(move.from.x, (move.from.y + move.to.y) / 2);
             }
 
-            if (to.y == 0)
+            if (move.to.y == 0)
             {
                 fromPiece.type = PieceData.Type.Queen;
                 Destroy(fromPiece.gameObject);
-                fromPiece.gameObject = Instantiate(BlackQueen, tiles[(int)to.x, (int)to.y].transform.position + new Vector3(0, 0, -1), Quaternion.identity);
+                fromPiece.gameObject = Instantiate(BlackQueen, tiles[(int)move.to.x, (int)move.to.y].transform.position + new Vector3(0, 0, -1), Quaternion.identity);
             }
-            else if (to.y == 7)
+            else if (move.to.y == 7)
             {
                 fromPiece.type = PieceData.Type.Queen;
                 Destroy(fromPiece.gameObject);
-                fromPiece.gameObject = Instantiate(WhiteQueen, tiles[(int)to.x, (int)to.y].transform.position + new Vector3(0, 0, -1), Quaternion.identity);
+                fromPiece.gameObject = Instantiate(WhiteQueen, tiles[(int)move.to.x, (int)move.to.y].transform.position + new Vector3(0, 0, -1), Quaternion.identity);
             }
         }
 
-        if (board.pieces[(int)to.x, (int)to.y] != null)
+        if (board.pieces[(int)move.to.x, (int)move.to.y] != null)
         {
-            StartCoroutine(TakeCoroutine(board.pieces[(int)to.x, (int)to.y].gameObject));
+            StartCoroutine(TakeCoroutine(board.pieces[(int)move.to.x, (int)move.to.y].gameObject));
             audioSource.PlayOneShot(captureSound);
             audioSource.PlayOneShot(moveSound);
             board.fiftyMoveCounter = 0;
@@ -163,41 +166,41 @@ public class Board : MonoBehaviour
         }
 
         // move piece
-        board.pieces[(int)to.x, (int)to.y] = fromPiece;
+        board.pieces[(int)move.to.x, (int)move.to.y] = fromPiece;
         // update piece pos
-        board.pieces[(int)to.x, (int)to.y].position = to;
+        board.pieces[(int)move.to.x, (int)move.to.y].position = move.to;
         // delete old pos piece
-        board.pieces[(int)from.x, (int)from.y] = null;
+        board.pieces[(int)move.from.x, (int)move.from.y] = null;
 
         board.sideToMove = -board.sideToMove;
 
         return true;
     }
 
-    public bool TestMove(Vector2 from, Vector2 to, BoardData testBoard)
+    public bool TestMove(Move move, BoardData testBoard)
     {
-        PieceData fromPiece = testBoard.pieces[(int)from.x, (int)from.y];
+        PieceData fromPiece = testBoard.pieces[(int)move.from.x, (int)move.from.y];
 
         if (fromPiece == null) return false;
         if (fromPiece.isWhite != testBoard.sideToMove) return false;
-        if (!fromPiece.LegalMoves(testBoard).Contains(to)) return false;
+        if (!fromPiece.LegalMoves(testBoard).Contains(move.to)) return false;
 
         if (fromPiece.type == PieceData.Type.King || fromPiece.type == PieceData.Type.Rook || fromPiece.type == PieceData.Type.Pawn)
         {
             if (fromPiece.type == PieceData.Type.Pawn)
             {
-                if (to == testBoard.enPassant)
+                if (move.to == testBoard.enPassant)
                 {
                     // En Passant Capture
-                    testBoard.pieces[(int)to.x, (int)from.y] = null;
+                    testBoard.pieces[(int)move.to.x, (int)move.from.y] = null;
                 }
             }
 
             if (fromPiece.type == PieceData.Type.Rook)
             {
                 (int, int) index = fromPiece.isWhite == 1 ? (0, 1) : (2, 3);
-                if (from.x == 7 && testBoard.castling[index.Item1]) testBoard.castling[index.Item1] = false; // King side
-                if (from.x == 0 && testBoard.castling[index.Item2]) testBoard.castling[index.Item2] = false; // Queen side
+                if (move.from.x == 7 && testBoard.castling[index.Item1]) testBoard.castling[index.Item1] = false; // King side
+                if (move.from.x == 0 && testBoard.castling[index.Item2]) testBoard.castling[index.Item2] = false; // Queen side
             }
 
             // Update king positions
@@ -205,11 +208,11 @@ public class Board : MonoBehaviour
             {
                 if (testBoard.sideToMove == 1)
                 {
-                    testBoard.white_kingpos = to;
+                    testBoard.white_kingpos = move.to;
                 }
                 else
                 {
-                    testBoard.black_kingpos = to;
+                    testBoard.black_kingpos = move.to;
                 }
 
                 // Update castling
@@ -217,24 +220,24 @@ public class Board : MonoBehaviour
                 testBoard.castling[index.Item1] = false;
                 testBoard.castling[index.Item2] = false;
 
-                if (Math.Abs(from.x - to.x) == 2)
+                if (Math.Abs(move.from.x - move.to.x) == 2)
                 {
                     // Castling
-                    if (to.x == 6)
+                    if (move.to.x == 6)
                     {
                         // Kingside
                         // Move Rook
-                        testBoard.pieces[5, (int)from.y] = testBoard.pieces[7, (int)from.y];
-                        testBoard.pieces[5, (int)from.y].position = new Vector2(5, from.y);
-                        testBoard.pieces[7, (int)from.y] = null;
+                        testBoard.pieces[5, (int)move.from.y] = testBoard.pieces[7, (int)move.from.y];
+                        testBoard.pieces[5, (int)move.from.y].position = new Vector2(5, move.from.y);
+                        testBoard.pieces[7, (int)move.from.y] = null;
                     }
-                    else if (to.x == 2)
+                    else if (move.to.x == 2)
                     {
                         // Queenside
                         // Move Rook
-                        testBoard.pieces[3, (int)from.y] = testBoard.pieces[0, (int)from.y];
-                        testBoard.pieces[3, (int)from.y].position = new Vector2(3, from.y);
-                        testBoard.pieces[0, (int)from.y] = null;
+                        testBoard.pieces[3, (int)move.from.y] = testBoard.pieces[0, (int)move.from.y];
+                        testBoard.pieces[3, (int)move.from.y].position = new Vector2(3, move.from.y);
+                        testBoard.pieces[0, (int)move.from.y] = null;
                     }
                 }
             }
@@ -244,21 +247,21 @@ public class Board : MonoBehaviour
         testBoard.enPassant = new Vector2(-1, -1);
         if (fromPiece.type == PieceData.Type.Pawn)
         {
-            if (Math.Abs(from.y - to.y) == 2)
+            if (Math.Abs(move.from.y - move.to.y) == 2)
             {
-                testBoard.enPassant = new Vector2(from.x, (from.y + to.y) / 2);
+                testBoard.enPassant = new Vector2(move.from.x, (move.from.y + move.to.y) / 2);
             }
 
-            if (to.y == 0 || to.y == 7)
+            if (move.to.y == 0 || move.to.y == 7)
             {
                 fromPiece.type = PieceData.Type.Queen;
             }
         }
 
         // Move Piece
-        testBoard.pieces[(int)to.x, (int)to.y] = fromPiece;
-        testBoard.pieces[(int)to.x, (int)to.y].position = to;
-        testBoard.pieces[(int)from.x, (int)from.y] = null;
+        testBoard.pieces[(int)move.to.x, (int)move.to.y] = fromPiece;
+        testBoard.pieces[(int)move.to.x, (int)move.to.y].position = move.to;
+        testBoard.pieces[(int)move.from.x, (int)move.from.y] = null;
         
         if (CheckChecks(testBoard))
         {
@@ -505,18 +508,16 @@ public class Board : MonoBehaviour
 
     public MateType GenerateEndState(BoardData board)
     {
-        List<(Vector2, List<Vector2>)> piecesAndMoves = moveGenerator.GenerateAllMoves(board);
+        List<Move> allMoves = moveGenerator.GenerateLegalMoves(board);
 
-        foreach ((Vector2, List<Vector2>) piece in piecesAndMoves)
+        for (int i = 0; i < allMoves.Count; i++)
         {
-            foreach (Vector2 move in piece.Item2)
-            {
-                BoardData testBoard = board.DeepCopy();
-                // If any move is legal, it's not checkmate
-                if (TestMove(piece.Item1, move, testBoard)) return MateType.None;
-            }
+            Move move = allMoves[i];
+            BoardData newBoard = board.DeepCopy();
+            // If any move is legal, continue the game
+            if (TestMove(move, newBoard)) return MateType.None;
         }
-
+            
         // If no moves are legal and is in check, return checkmate
         if (CheckChecks(board)) return MateType.Checkmate;
         // If not in check, return stalemate
